@@ -42,7 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 # local tooling / generated artifacts
-.bob/tmp/
+.bob/
 lh-home.html
 *.log
 *.err
