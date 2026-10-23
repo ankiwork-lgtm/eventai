@@ -40,3 +40,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local tooling / generated artifacts
+.bob/tmp/
+lh-home.html
+*.log
+*.err
+run.out
+stream-out.txt
+lh-ver.txt
