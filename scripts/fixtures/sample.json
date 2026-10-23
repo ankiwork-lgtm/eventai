@@ -1,0 +1,12 @@
+{
+  "eventType": "wedding",
+  "eventName": "Priya & Rohan Wedding",
+  "date": "2027-02-14",
+  "guestCount": 150,
+  "totalBudget": 1500000,
+  "currency": "INR",
+  "city": "Mumbai",
+  "theme": "Floral garden, pastel tones",
+  "culturalTraditions": "Maharashtrian wedding, 2-day ceremony with Haldi, Mehendi and Saptapadi",
+  "preferences": "Vegetarian menu, outdoor mandap if weather permits, live classical music"
+}

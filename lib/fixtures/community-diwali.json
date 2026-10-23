@@ -1,0 +1,237 @@
+{
+  "summary": "A neighbourhood Diwali evening for about 300 residents in Pune on a ₹50,000 budget (roughly ₹167 a head), centred on a lane-by-lane rangoli contest, a community faral potluck and a short cultural programme on a small stage. Because the budget is tight we assumed a society courtyard or open ground with no venue fee, a resident-run potluck covering most of the food, and eco-friendly fireworks only if the society and local police allow it. With about six weeks to go, permissions and sponsorship should start immediately.",
+  "budget": [
+    {
+      "category": "Lighting & Decor",
+      "percent": 22,
+      "estimatedCost": 11000,
+      "tips": "Use string lights in warm white, marigold toran and hand-made diyas from a local potter. Ask residents to lend lanterns and large rangoli stencils."
+    },
+    {
+      "category": "Food & Snacks",
+      "percent": 26,
+      "estimatedCost": 13000,
+      "tips": "Run a faral potluck where each household brings one traditional item such as chakli, karanji or ladoo. Pay only for chai, water and a large pot of khichdi or misal for volunteers."
+    },
+    {
+      "category": "Sound, Stage & Performances",
+      "percent": 12,
+      "estimatedCost": 6000,
+      "tips": "Rent a basic PA system for four hours instead of a full stage setup, and invite resident children and local bhajan or dhol groups to perform for a small honorarium."
+    },
+    {
+      "category": "Eco Fireworks & Fire Safety",
+      "percent": 8,
+      "estimatedCost": 4000,
+      "tips": "Choose a short, licensed green-cracker display or a lantern release, and keep a fire extinguisher and sand buckets ready beside it."
+    },
+    {
+      "category": "Permissions, Safety & First Aid",
+      "percent": 6,
+      "estimatedCost": 3000,
+      "tips": "Get the society NOC and the loudspeaker permission from the local police station early, and borrow a first aid kit from the nearest clinic."
+    },
+    {
+      "category": "Publicity & Printing",
+      "percent": 5,
+      "estimatedCost": 2500,
+      "tips": "Promote through the society WhatsApp groups and a few printed A3 posters at the gates and lifts rather than flex banners."
+    },
+    {
+      "category": "Kids' Activities & Prizes",
+      "percent": 8,
+      "estimatedCost": 4000,
+      "tips": "Run diya-painting and rangoli contests with prizes sponsored by local shops, and use recycled material for craft stations."
+    },
+    {
+      "category": "Volunteers & Logistics",
+      "percent": 5,
+      "estimatedCost": 2500,
+      "tips": "Give volunteers simple coloured armbands or sashes instead of t-shirts and cover their refreshments from the potluck leftovers."
+    },
+    {
+      "category": "Clean-up & Waste Management",
+      "percent": 3,
+      "estimatedCost": 1500,
+      "tips": "Place segregated wet, dry and compost bins at every food stall and tie in with the society housekeeping staff for a quick post-event clean-up."
+    },
+    {
+      "category": "Contingency",
+      "percent": 5,
+      "estimatedCost": 2500,
+      "tips": "Hold this back for rain cover, an extra generator hour or a last-minute sound fix."
+    }
+  ],
+  "timeline": [
+    {
+      "when": "6 weeks before",
+      "daysBefore": 42,
+      "task": "Form a small organising committee and assign leads for food, decor, programme, safety and publicity",
+      "priority": "high"
+    },
+    {
+      "when": "6 weeks before",
+      "daysBefore": 40,
+      "task": "Apply for the society NOC and the local police loudspeaker and fireworks permissions",
+      "priority": "high"
+    },
+    {
+      "when": "5 weeks before",
+      "daysBefore": 35,
+      "task": "Approach local shops and businesses for sponsorship and in-kind prizes",
+      "priority": "high"
+    },
+    {
+      "when": "1 month before",
+      "daysBefore": 30,
+      "task": "Collect voluntary household contributions and open a simple shared expense sheet",
+      "priority": "medium"
+    },
+    {
+      "when": "4 weeks before",
+      "daysBefore": 28,
+      "task": "Book the sound system, string lights and the stage platform with the rental vendor",
+      "priority": "high"
+    },
+    {
+      "when": "3 weeks before",
+      "daysBefore": 24,
+      "task": "Launch publicity: WhatsApp invites, A3 posters and a volunteer sign-up form",
+      "priority": "medium"
+    },
+    {
+      "when": "3 weeks before",
+      "daysBefore": 21,
+      "task": "Finalise the programme: kids' dance, bhajan set, rangoli contest and diya-painting",
+      "priority": "medium"
+    },
+    {
+      "when": "18 days before",
+      "daysBefore": 18,
+      "task": "Share the faral potluck sign-up sheet and confirm tea and snack vendors",
+      "priority": "medium"
+    },
+    {
+      "when": "2 weeks before",
+      "daysBefore": 14,
+      "task": "Buy diyas, torans, rangoli colours and prizes",
+      "priority": "medium"
+    },
+    {
+      "when": "10 days before",
+      "daysBefore": 10,
+      "task": "Create the volunteer roster and hold a safety briefing on crowd flow and emergency contacts",
+      "priority": "high"
+    },
+    {
+      "when": "1 week before",
+      "daysBefore": 7,
+      "task": "Arrange first aid, fire extinguishers, ramps and seating for senior citizens",
+      "priority": "high"
+    },
+    {
+      "when": "3 days before",
+      "daysBefore": 3,
+      "task": "Do a site walkthrough and a full sound and lighting check with the vendor",
+      "priority": "medium"
+    },
+    {
+      "when": "2 days before",
+      "daysBefore": 2,
+      "task": "Put up the string lights, torans and signage around the courtyard",
+      "priority": "medium"
+    },
+    {
+      "when": "1 day before",
+      "daysBefore": 1,
+      "task": "Mark the rangoli areas, set up the stage and confirm every volunteer's slot",
+      "priority": "high"
+    },
+    {
+      "when": "Event day",
+      "daysBefore": 0,
+      "task": "Run the Diwali evening: Lakshmi Pujan, rangoli judging, performances, faral sharing and the fireworks finale",
+      "priority": "high"
+    },
+    {
+      "when": "Day after",
+      "daysBefore": -1,
+      "task": "Clean up, return rentals, share the final expense sheet and thank sponsors and volunteers",
+      "priority": "medium"
+    }
+  ],
+  "vendors": [
+    {
+      "type": "Lighting & Decor",
+      "checklist": [
+        "Compare rental rates for string lights and confirm the number of metres needed",
+        "Order marigold toran and diyas from a local supplier",
+        "Confirm electrical points, extension cables and a safe load",
+        "Plan the set-up and take-down timings with volunteers"
+      ],
+      "budgetRange": "₹9,000 – ₹13,000"
+    },
+    {
+      "type": "Food & Snacks",
+      "checklist": [
+        "Share the faral potluck sheet and assign items to avoid duplicates",
+        "Book chai and water for volunteers and senior guests",
+        "Arrange serving tables, hand-wash points and disposable or steel plates",
+        "Plan separate bins for wet and dry waste"
+      ],
+      "budgetRange": "₹11,000 – ₹15,000"
+    },
+    {
+      "type": "Sound, Stage & Performances",
+      "checklist": [
+        "Rent a PA system with two microphones for four hours",
+        "Confirm the stage size and the performance running order",
+        "Check permitted sound hours and keep the volume within limits",
+        "Arrange a backup extension and spare batteries"
+      ],
+      "budgetRange": "₹5,000 – ₹7,500"
+    },
+    {
+      "type": "Eco Fireworks & Fire Safety",
+      "checklist": [
+        "Confirm that green crackers or a lantern release are allowed by the society and police",
+        "Mark a safe distance zone and keep children behind a barrier",
+        "Keep a fire extinguisher, sand and water buckets in place",
+        "Assign two trained volunteers to the display"
+      ],
+      "budgetRange": "₹3,000 – ₹5,000"
+    },
+    {
+      "type": "Permissions, Safety & First Aid",
+      "checklist": [
+        "Get the society NOC in writing",
+        "Submit the loudspeaker application to the local police station",
+        "Prepare a basic first aid kit and the numbers for the nearest clinic",
+        "Share an emergency contact sheet with all volunteers"
+      ],
+      "budgetRange": "₹2,000 – ₹4,000"
+    }
+  ],
+  "ideas": [
+    {
+      "title": "Lane-by-lane rangoli contest",
+      "description": "Give each building or lane a rangoli patch and a theme such as 'Light and Unity'. Residents judge each other's work and the winning lane gets a trophy diya."
+    },
+    {
+      "title": "Faral potluck table",
+      "description": "Every household brings a homemade Diwali item such as chakli, karanji or ladoo. Label them and serve them together so the whole neighbourhood tastes everyone's recipe."
+    },
+    {
+      "title": "Diya-painting for kids",
+      "description": "Set up a table with plain clay diyas, acrylic paints and glitter so children can paint one to keep and one to place on the entrance decoration."
+    },
+    {
+      "title": "Lantern walk",
+      "description": "Let residents make akash kandils in a pre-event workshop and walk through the lanes at dusk, ending with a short Lakshmi Pujan at the courtyard."
+    },
+    {
+      "title": "Green Diwali pledge wall",
+      "description": "Put up a large chart where families sign a pledge to use fewer crackers, reduce noise and segregate waste, with a small token of appreciation for every signature."
+    }
+  ]
+}

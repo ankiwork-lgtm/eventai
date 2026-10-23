@@ -1,0 +1,213 @@
+{
+  "summary": "A superhero-themed 7th birthday for about 25 kids in Pune on a ₹60,000 budget, built around a two-hour 'Superhero Academy' with an obstacle course, mask and cape crafts, and a rescue-the-city treasure hunt. We assumed a society clubhouse or small party hall, around 10 accompanying parents, a vegetarian kid-friendly menu, and an afternoon slot so the kids are fresh. With roughly a month to go, booking the venue and entertainer and ordering the custom cake in the first week keeps everything comfortable.",
+  "budget": [
+    {
+      "category": "Venue",
+      "percent": 20,
+      "estimatedCost": 12000,
+      "tips": "Use a society clubhouse or community hall in Baner, Aundh or Kothrud with a weekday-evening or Sunday-morning rate instead of a commercial play zone, and ask for tables and chairs to be included."
+    },
+    {
+      "category": "Food & Catering",
+      "percent": 24,
+      "estimatedCost": 14400,
+      "tips": "Order a kids' menu of mini pizzas, veg sliders and pav bhaji bites from a home caterer at about ₹350 per head and serve parents tea and snacks from the same order."
+    },
+    {
+      "category": "Cake & Desserts",
+      "percent": 8,
+      "estimatedCost": 4800,
+      "tips": "Order one two-kg superhero cake from a local home baker and add a 'Kryptonite' green jelly cup station instead of a second cake."
+    },
+    {
+      "category": "Decor & Theme",
+      "percent": 14,
+      "estimatedCost": 8400,
+      "tips": "Buy red, blue and yellow balloons in bulk from Tulshibaug, make a building skyline backdrop from printed chart paper, and reuse the same props as the photo booth."
+    },
+    {
+      "category": "Entertainment & Games",
+      "percent": 13,
+      "estimatedCost": 7800,
+      "tips": "Hire one host or a costumed superhero for 90 minutes and run the rest of the games yourself with a few volunteer relatives."
+    },
+    {
+      "category": "Return Gifts",
+      "percent": 8,
+      "estimatedCost": 4800,
+      "tips": "Give each child the cape or mask they made plus a small stationery set at around ₹180 per kid instead of buying toys."
+    },
+    {
+      "category": "Photography",
+      "percent": 5,
+      "estimatedCost": 3000,
+      "tips": "Hire a photographer for one hour for the cake cutting and group photos and ask a relative to capture the games on a phone."
+    },
+    {
+      "category": "Invitations & Misc.",
+      "percent": 3,
+      "estimatedCost": 1800,
+      "tips": "Send a WhatsApp invite card to parents, and keep a small kit of wipes, plasters and extra bags for spills and scrapes."
+    },
+    {
+      "category": "Contingency",
+      "percent": 5,
+      "estimatedCost": 3000,
+      "tips": "Keep this in cash for an extra guest count, an unexpected cake upgrade or a missing prop on the day."
+    }
+  ],
+  "timeline": [
+    {
+      "when": "4 weeks before",
+      "daysBefore": 28,
+      "task": "Fix the date, time and guest list with the birthday boy and confirm the party theme and character",
+      "priority": "high"
+    },
+    {
+      "when": "4 weeks before",
+      "daysBefore": 27,
+      "task": "Book the clubhouse or hall in Pune and confirm table, chair and sound system access",
+      "priority": "high"
+    },
+    {
+      "when": "3 weeks before",
+      "daysBefore": 21,
+      "task": "Book the host or costumed superhero for a 90-minute slot",
+      "priority": "high"
+    },
+    {
+      "when": "3 weeks before",
+      "daysBefore": 20,
+      "task": "Send WhatsApp invitations to parents and ask for RSVPs and any food allergies",
+      "priority": "high"
+    },
+    {
+      "when": "2 weeks before",
+      "daysBefore": 14,
+      "task": "Order the custom superhero cake and confirm the design and delivery time",
+      "priority": "medium"
+    },
+    {
+      "when": "2 weeks before",
+      "daysBefore": 12,
+      "task": "Finalise the kids' menu and place the catering order",
+      "priority": "medium"
+    },
+    {
+      "when": "10 days before",
+      "daysBefore": 10,
+      "task": "Plan the Superhero Academy: obstacle course, mask and cape crafts and treasure hunt clues",
+      "priority": "medium"
+    },
+    {
+      "when": "1 week before",
+      "daysBefore": 7,
+      "task": "Buy decor: balloons, banners, cape and mask materials and photo booth props",
+      "priority": "medium"
+    },
+    {
+      "when": "5 days before",
+      "daysBefore": 5,
+      "task": "Prepare return gifts and goody bags with name tags",
+      "priority": "low"
+    },
+    {
+      "when": "3 days before",
+      "daysBefore": 3,
+      "task": "Confirm the final headcount and send a reminder with the venue pin to parents",
+      "priority": "high"
+    },
+    {
+      "when": "1 day before",
+      "daysBefore": 1,
+      "task": "Print treasure hunt clues, test the music playlist and pack the party kit",
+      "priority": "medium"
+    },
+    {
+      "when": "Party day",
+      "daysBefore": 0,
+      "task": "Decorate the hall two hours early, run the Superhero Academy games and cut the cake",
+      "priority": "high"
+    },
+    {
+      "when": "Day after",
+      "daysBefore": -1,
+      "task": "Settle payments, return rented items and send thank-you notes with photos to parents",
+      "priority": "low"
+    }
+  ],
+  "vendors": [
+    {
+      "type": "Venue",
+      "checklist": [
+        "Confirm the time slot including set-up and clear-down",
+        "Check that chairs, tables, power sockets and a sound system are included",
+        "Ask whether outside caterers and decorators are allowed",
+        "Note the rules for balloons, confetti and wall decorations"
+      ],
+      "budgetRange": "₹10,000 – ₹15,000"
+    },
+    {
+      "type": "Food & Catering",
+      "checklist": [
+        "Agree a veg kids' menu with mini pizza, sliders and pav bhaji bites",
+        "Ask for parents' tea, coffee and snacks to be added",
+        "Check for nut, dairy and gluten allergies from the RSVPs",
+        "Confirm delivery time, serving staff and disposable plates"
+      ],
+      "budgetRange": "₹12,000 – ₹16,000"
+    },
+    {
+      "type": "Cake & Desserts",
+      "checklist": [
+        "Share a reference photo of the superhero design",
+        "Confirm weight, flavour and whether it is eggless",
+        "Agree on delivery time and an extra-careful packing note",
+        "Order the green jelly cups for the 'Kryptonite' dessert table"
+      ],
+      "budgetRange": "₹4,000 – ₹5,500"
+    },
+    {
+      "type": "Decor & Theme",
+      "checklist": [
+        "Buy balloons in red, blue and yellow and a helium option for the entrance arch",
+        "Prepare a city skyline backdrop and a photo booth with cutouts",
+        "Order or make capes and masks for every child",
+        "Plan the set-up time and who will help"
+      ],
+      "budgetRange": "₹7,000 – ₹10,000"
+    },
+    {
+      "type": "Entertainment & Games",
+      "checklist": [
+        "Confirm the host or costumed superhero's time and set list",
+        "Agree on the 90-minute activity plan: obstacle course, craft and treasure hunt",
+        "Check that sound and a microphone are available",
+        "Plan prizes and a safe, supervised finish for each game"
+      ],
+      "budgetRange": "₹6,000 – ₹9,000"
+    }
+  ],
+  "ideas": [
+    {
+      "title": "Superhero Academy training",
+      "description": "Run a 'training' circuit with a cardboard shield obstacle course, a web-crawl under strings and a power-up water station. Every child earns a graduation badge."
+    },
+    {
+      "title": "Cape and mask workshop",
+      "description": "Give each child a plain cape and mask to decorate with stickers and fabric markers. They wear their creation through the party and take it home as the return gift."
+    },
+    {
+      "title": "Save the city treasure hunt",
+      "description": "Hide clue cards around the hall that spell out a secret code to 'save the city'. Teams of five kids solve them together, and the winning team opens the treasure box of stickers."
+    },
+    {
+      "title": "Kryptonite dessert table",
+      "description": "Serve green jelly cups, popcorn 'power pellets' and juice labelled 'hero fuel' next to the cake so the food becomes part of the theme."
+    },
+    {
+      "title": "Birthday hero spotlight",
+      "description": "Give the birthday boy a gold cape and a 'Hero of the Day' sash, and let his friends cheer as he receives a hand-made medal before the cake."
+    }
+  ]
+}

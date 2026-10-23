@@ -1,0 +1,305 @@
+{
+  "summary": "A two-day Maharashtrian wedding for 200 guests in Mumbai on a ₹10,00,000 budget: Day 1 brings Halad Chadavne (haldi), mehendi and a family Sangeet, and Day 2 is the Simant Pujan, Antarpat, Mangalashtak and Saptapadi followed by a short evening reception. Catering and the venue take over half the budget, so we assumed a banquet hall in Dadar, Thane or Navi Mumbai rather than a hotel ballroom, a pure-vegetarian traditional menu, and that most guests live in or near Mumbai. With about four months to go, venue, caterer and photographer should be locked in this month because good Muhurat dates book out fast.",
+  "budget": [
+    {
+      "category": "Venue & Decor",
+      "percent": 22,
+      "estimatedCost": 220000,
+      "tips": "Book a banquet hall for two days on a weekday-evening or package rate and ask for the basic stage and lighting to be included. Reuse the Day 2 mandap flowers for the reception backdrop."
+    },
+    {
+      "category": "Catering",
+      "percent": 30,
+      "estimatedCost": 300000,
+      "tips": "Choose a traditional Maharashtrian thali (puran poli, masale bhaat, varan-bhaat, shrikhand) at ₹900 to ₹1,100 per plate instead of a multi-cuisine buffet, and confirm a final headcount two weeks out to avoid paying for extra plates."
+    },
+    {
+      "category": "Photography & Videography",
+      "percent": 8,
+      "estimatedCost": 80000,
+      "tips": "Hire one lead photographer plus one candid shooter for Day 2 and a single photographer for the Day 1 functions. Skip the drone and the printed album, and take a digital gallery instead."
+    },
+    {
+      "category": "Attire, Jewellery & Beauty",
+      "percent": 13,
+      "estimatedCost": 130000,
+      "tips": "Buy the bride's Paithani or Nauvari saree and rent the groom's pheta and sherwani set. Rent statement jewellery such as the nath and tanmani for the ceremony and use family heirlooms for the rest."
+    },
+    {
+      "category": "Priest, Rituals & Music",
+      "percent": 5,
+      "estimatedCost": 50000,
+      "tips": "Ask the priest for one consolidated samagri list and buy it in bulk from a Dadar market wholesaler. Book a single sanai and dhol-tasha group for both the varat and the ceremony."
+    },
+    {
+      "category": "Mehendi, Sangeet & Haldi",
+      "percent": 6,
+      "estimatedCost": 60000,
+      "tips": "Keep the Sangeet a family-performance evening with a DJ for two hours rather than a hired choreographer, and use fresh marigold and turmeric from the market for the haldi set-up."
+    },
+    {
+      "category": "Guest Accommodation & Transport",
+      "percent": 6,
+      "estimatedCost": 60000,
+      "tips": "Block rooms only for out-of-town elders at a budget hotel near the venue, and arrange a single hired tempo traveller for the varat and airport or station pick-ups."
+    },
+    {
+      "category": "Invitations & Gifts",
+      "percent": 3,
+      "estimatedCost": 30000,
+      "tips": "Send a WhatsApp e-invite to most guests and print cards only for elders and close relatives. Choose a useful return gift such as a potted tulsi or a steel dabba."
+    },
+    {
+      "category": "Contingency",
+      "percent": 7,
+      "estimatedCost": 70000,
+      "tips": "Hold this reserve back until the final week. It typically absorbs last-minute headcount increases, extra decor flowers and vendor overtime."
+    }
+  ],
+  "timeline": [
+    {
+      "when": "4 months before",
+      "monthsBefore": 4,
+      "task": "Meet the family priest to confirm the Muhurat and timings for Day 1 functions and the Day 2 Simant Pujan, Antarpat and Saptapadi",
+      "priority": "high"
+    },
+    {
+      "when": "4 months before",
+      "monthsBefore": 4,
+      "task": "Fix the guest list (about 200) with both families and agree the final ₹10,00,000 budget split",
+      "priority": "high"
+    },
+    {
+      "when": "4 months before",
+      "monthsBefore": 4,
+      "task": "Book a banquet hall in Dadar, Thane or Navi Mumbai for both days and pay the booking advance",
+      "priority": "high"
+    },
+    {
+      "when": "4 months before",
+      "monthsBefore": 4,
+      "task": "Book the caterer after a trial of puran poli, masale bhaat and shrikhand, and lock the per-plate rate in writing",
+      "priority": "high"
+    },
+    {
+      "when": "4 months before",
+      "monthsBefore": 4,
+      "task": "Book the photographer and videographer for Day 1 and Day 2",
+      "priority": "high"
+    },
+    {
+      "when": "3 months before",
+      "monthsBefore": 3,
+      "task": "Shop for the bride's Paithani or Nauvari saree, Shalu, and the groom's pheta and kurta, and order tailoring",
+      "priority": "high"
+    },
+    {
+      "when": "3 months before",
+      "monthsBefore": 3,
+      "task": "Book the mehendi artist and the bridal makeup artist for the two days",
+      "priority": "medium"
+    },
+    {
+      "when": "3 months before",
+      "monthsBefore": 3,
+      "task": "Design the invitation (digital plus a small print run) and finalise wording for both days",
+      "priority": "medium"
+    },
+    {
+      "when": "2 months before",
+      "monthsBefore": 2,
+      "task": "Send invitations and open RSVPs on WhatsApp, with printed cards for elders",
+      "priority": "high"
+    },
+    {
+      "when": "2 months before",
+      "monthsBefore": 2,
+      "task": "Reserve a block of rooms and a tempo traveller for out-of-town guests",
+      "priority": "medium"
+    },
+    {
+      "when": "2 months before",
+      "monthsBefore": 2,
+      "task": "Finalise the mandap, Antarpat cloth and floral decor theme with the decorator",
+      "priority": "medium"
+    },
+    {
+      "when": "1 month before",
+      "monthsBefore": 1,
+      "task": "Book the sanai and dhol-tasha group for the varat, and a DJ with sound for the Sangeet",
+      "priority": "medium"
+    },
+    {
+      "when": "1 month before",
+      "monthsBefore": 1,
+      "task": "Collect the full pooja samagri list from the priest and order the items",
+      "priority": "medium"
+    },
+    {
+      "when": "1 month before",
+      "monthsBefore": 1,
+      "task": "Order return gifts and welcome hampers for out-of-town guests",
+      "priority": "low"
+    },
+    {
+      "when": "3 weeks before",
+      "daysBefore": 21,
+      "task": "Complete outfit and jewellery fittings and fix any alterations",
+      "priority": "medium"
+    },
+    {
+      "when": "2 weeks before",
+      "daysBefore": 14,
+      "task": "Confirm the final headcount with the caterer and the venue",
+      "priority": "high"
+    },
+    {
+      "when": "10 days before",
+      "daysBefore": 10,
+      "task": "Prepare documents for marriage registration: ID and address proofs, photographs and the invitation card",
+      "priority": "low"
+    },
+    {
+      "when": "1 week before",
+      "daysBefore": 7,
+      "task": "Walk through the venue with the decorator, caterer and photographer and share a written run-of-show",
+      "priority": "high"
+    },
+    {
+      "when": "6 days before",
+      "daysBefore": 6,
+      "task": "Host the Kelvan, the pre-wedding feast, for close relatives at home",
+      "priority": "medium"
+    },
+    {
+      "when": "2 days before",
+      "daysBefore": 2,
+      "task": "Give each family helper a named responsibility and pack ceremonial items, the Mundavalya and the Mangalsutra",
+      "priority": "high"
+    },
+    {
+      "when": "Day 1 (day before)",
+      "daysBefore": 1,
+      "task": "Day 1: Halad Chadavne (haldi), mehendi and the family Sangeet evening",
+      "priority": "high"
+    },
+    {
+      "when": "Wedding day",
+      "daysBefore": 0,
+      "task": "Day 2: Simant Pujan, Gaurihar Pooja, Antarpat, Mangalashtak, Kanyadaan and Saptapadi",
+      "priority": "high"
+    },
+    {
+      "when": "Wedding day",
+      "daysBefore": 0,
+      "task": "Evening reception, Griha Pravesh and the couple's blessings from elders",
+      "priority": "medium"
+    },
+    {
+      "when": "Day after",
+      "daysBefore": -1,
+      "task": "Settle vendor balances, return rented outfits and decor, and send thank-you messages",
+      "priority": "medium"
+    }
+  ],
+  "vendors": [
+    {
+      "type": "Venue & Decor",
+      "checklist": [
+        "Confirm a booking for both days with set-up and clear-down time included",
+        "Ask what is included: stage, lighting, AC, generator back-up and parking",
+        "Check the venue's closing time and any music restriction after 10 pm",
+        "Get the mandap, Antarpat and floral design signed off with photographs",
+        "Confirm the dressing room and green room for the bride and groom"
+      ],
+      "budgetRange": "₹2,00,000 – ₹2,40,000"
+    },
+    {
+      "type": "Catering",
+      "checklist": [
+        "Do a tasting of puran poli, masale bhaat, varan-bhaat, amti and shrikhand",
+        "Agree the per-plate price and the number of meals across both days",
+        "Confirm a live counter for jalebi or chaat and the service staff count",
+        "Ask about a Jain and no-onion-no-garlic option for a few guests",
+        "Settle the final headcount deadline and the extra-plate rate"
+      ],
+      "budgetRange": "₹2,80,000 – ₹3,20,000"
+    },
+    {
+      "type": "Photography & Videography",
+      "checklist": [
+        "Review recent Maharashtrian wedding albums from the photographer",
+        "Confirm hours of coverage for both days and the number of team members",
+        "Agree on the delivery timeline for the digital gallery and highlight reel",
+        "Share a must-capture list: Antarpat, Saptapadi, Kanyadaan and family portraits"
+      ],
+      "budgetRange": "₹70,000 – ₹90,000"
+    },
+    {
+      "type": "Priest, Rituals & Music",
+      "checklist": [
+        "Fix the Muhurat and the schedule for each ritual with the priest",
+        "Get the pooja samagri list and the dakshina agreed in advance",
+        "Book the sanai and dhol-tasha group for the varat and the entrance",
+        "Confirm who will arrange the Mundavalya, Mangalsutra and Akshata"
+      ],
+      "budgetRange": "₹40,000 – ₹60,000"
+    },
+    {
+      "type": "Attire, Jewellery & Beauty",
+      "checklist": [
+        "Place tailoring orders early for the Paithani or Nauvari saree blouse and groom's outfit",
+        "Confirm jewellery on rent or purchase, including the nath and tanmani",
+        "Book the bridal makeup trial two weeks before the wedding",
+        "Plan matching outfits for close family on Day 1 and Day 2"
+      ],
+      "budgetRange": "₹1,10,000 – ₹1,50,000"
+    },
+    {
+      "type": "Mehendi, Sangeet & Haldi",
+      "checklist": [
+        "Book the mehendi artist for the bride and a few family members",
+        "Arrange turmeric, marigold and mango leaves for the haldi",
+        "Book a DJ, sound and a small stage for the Sangeet",
+        "Agree on a list of family performances and rehearsal slots"
+      ],
+      "budgetRange": "₹50,000 – ₹70,000"
+    },
+    {
+      "type": "Guest Accommodation & Transport",
+      "checklist": [
+        "Shortlist hotels within 15 minutes of the venue and reserve a room block",
+        "Create a simple arrival and departure sheet for out-of-town guests",
+        "Hire a tempo traveller for the varat and station or airport pick-ups",
+        "Share a map and a family contact number in the welcome note"
+      ],
+      "budgetRange": "₹50,000 – ₹70,000"
+    }
+  ],
+  "ideas": [
+    {
+      "title": "Paithani-inspired mandap",
+      "description": "Drape the stage in peacock and lotus Paithani motifs in maroon, gold and green, with marigold and mogra garlands. It photographs beautifully and reads as unmistakably Maharashtrian."
+    },
+    {
+      "title": "Dhol-tasha varat entrance",
+      "description": "Welcome the groom's procession with a dhol-tasha troupe and a sanai player, then switch to soft sanai for the Antarpat moment so the energy builds toward the ceremony."
+    },
+    {
+      "title": "Eco-friendly haldi",
+      "description": "Use fresh turmeric paste, marigold petals and a mango-leaf toran instead of synthetic colour, and let guests apply it with small brass bowls that double as return gifts."
+    },
+    {
+      "title": "Tulsi sapling return gifts",
+      "description": "Gift each family a small tulsi sapling in a clay pot with a handwritten thank-you tag. It is affordable, sustainable and ties back to the Griha Pravesh tradition."
+    },
+    {
+      "title": "Street-food reception counter",
+      "description": "Add a small live counter of vada pav, misal and cutting chai at the evening reception, a nostalgic Mumbai touch that is cheaper than an extra buffet station."
+    },
+    {
+      "title": "Sangeet family story reel",
+      "description": "Ask each side for three childhood photos and play a short slideshow between performances. It makes the Sangeet personal without paying for a choreographer."
+    }
+  ]
+}
