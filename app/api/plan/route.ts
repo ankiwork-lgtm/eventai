@@ -69,7 +69,6 @@ export async function POST(req: Request): Promise<Response> {
       prompt: buildPlanPrompt(input),
       temperature: 0.7,
       maxRetries: 1,
-      maxOutputTokens: 4000,
       // Observability (TDD §13): one structured line after the stream finishes.
       // Only enumerated, non-sensitive fields — never free text, inputs, or keys.
       onFinish: ({ usage, object, error }) => {

@@ -157,10 +157,10 @@ describe("lib/ai constants and helpers", () => {
   it("exports correct constants per spec", () => {
     expect(DEFAULT_LLM_MODEL).toBe("claude-sonnet-5-5");
     expect(MAX_RETRIES).toBe(1);
-    expect(MAX_OUTPUT_TOKENS.plan).toBe(4000);
+    expect(MAX_OUTPUT_TOKENS.plan).toBe(8000);
     expect(MAX_OUTPUT_TOKENS.refine).toBe(4500);
     expect(MAX_OUTPUT_TOKENS.email).toBe(600);
-    expect(MAX_OUTPUT_TOKENS_PLAN).toBe(4000);
+    expect(MAX_OUTPUT_TOKENS_PLAN).toBe(8000);
     expect(MAX_OUTPUT_TOKENS_REFINE).toBe(4500);
     expect(MAX_OUTPUT_TOKENS_EMAIL).toBe(600);
   });

@@ -47,7 +47,7 @@ export const MAX_RETRIES = 1;
 
 /** Max output token budgets per call type */
 export const MAX_OUTPUT_TOKENS = {
-  plan: 4000,
+  plan: 8000,
   refine: 4500,
   email: 600,
 } as const;
