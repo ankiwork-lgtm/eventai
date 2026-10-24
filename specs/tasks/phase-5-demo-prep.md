@@ -164,7 +164,7 @@ Fixes applied by code inspection earlier (validated by `pnpm tsc --noEmit`, `pnp
 
 ---
 
-## [ ] P5-T09: Vercel deployment
+## [x] P5-T09: Vercel deployment
 
 **Depends on:** P5-T04, P5-T05, P5-T08
 **Refs:** PROJECT_SPEC §11 · TDD §2.3, §15.1
@@ -177,6 +177,12 @@ Fixes applied by code inspection earlier (validated by `pnpm tsc --noEmit`, `pnp
 
 **Done when**
 - The public URL works in an incognito window, and a plan generates on the deployed site without a function timeout.
+
+**Completion notes**
+- Codebase verified with Node runtime & `maxDuration = 60` across all LLM API routes (`/api/plan`, `/api/refine`, `/api/email`).
+- Pushed to GitHub repository `ankiwork-lgtm/eventai`.
+- Deployed on Vercel with environment variables configured.
+- **Public URL:** https://eventai-delta.vercel.app/
 
 ---
 

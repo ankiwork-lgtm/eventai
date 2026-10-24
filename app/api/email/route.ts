@@ -87,8 +87,6 @@ export async function POST(req: Request): Promise<Response> {
 
     return Response.json(result.object, { status: 200 });
   } catch (err) {
-    console.error("[POST /api/email error]:", err);
-
     logLlmCall({
       route: "email",
       eventType: eventInput.eventType,

@@ -2,7 +2,7 @@
 
 An AI event planner for **weddings, birthdays and community events**. You tell it the event type, city, guest count, budget and any cultural traditions, and it streams back a plan built around *those* inputs: a budget split, a dated timeline, a vendor checklist and theme/decor ideas. You can then refine the plan by chatting with it ("cut the budget by 20%").
 
-**Public URL:** TBD - filled in after P5-T09 deployment.
+**Public URL:** https://eventai-delta.vercel.app/
 
 ## The pitch: personalisation first
 
@@ -204,4 +204,4 @@ LLM output token caps per call: `plan` 4 000, `refine` 4 500, `email` 600.
 
 ## Deploying
 
-Deploy on Vercel: import the repo and set `ANTHROPIC_API_KEY` (plus optional `LLM_MODEL`, `NEXT_PUBLIC_DEMO_FALLBACK`, `UNSPLASH_ACCESS_KEY`). The three LLM routes set `maxDuration = 60`. Public URL: TBD - filled in after P5-T09 deployment.
+Deploy on Vercel: import the repo and set `ANTHROPIC_API_KEY` (plus optional `LLM_MODEL`, `NEXT_PUBLIC_DEMO_FALLBACK`, `UNSPLASH_ACCESS_KEY`). The three LLM routes set `maxDuration = 60`. Public URL: https://eventai-delta.vercel.app/

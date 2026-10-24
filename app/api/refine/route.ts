@@ -67,8 +67,6 @@ export async function POST(req: Request): Promise<Response> {
 
     return Response.json(result.object, { status: 200 });
   } catch (err) {
-    console.error("[POST /api/refine error]:", err);
-
     logLlmCall({
       route: "refine",
       eventType: eventInput.eventType,

@@ -12,5 +12,11 @@ export default defineConfig({
     include: ["tests/**/*.test.{ts,tsx}"],
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 15000,
+    coverage: {
+      provider: "v8",
+      include: ["lib/**/*.ts", "app/api/**/*.ts"],
+      exclude: ["lib/fixtures/**"],
+      reporter: ["text", "html"],
+    },
   },
 });
