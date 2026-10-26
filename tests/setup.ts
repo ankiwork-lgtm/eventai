@@ -1,5 +1,12 @@
 import { beforeEach } from "vitest";
 
+// Register the `toHaveNoViolations` matcher for axe-core accessibility assertions.
+// vitest-axe 0.1.0 ships an empty `extend-expect` entry, so register the matcher
+// explicitly from `vitest-axe/matchers` instead.
+import { expect } from "vitest";
+import * as axeMatchers from "vitest-axe/matchers";
+expect.extend(axeMatchers);
+
 // vitest setup: tell React we're in a test environment so act() works.
 // @ts-expect-error — not in the standard types but required by React 19
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

@@ -174,13 +174,13 @@ Exceeding the limit returns HTTP 429 with a `Retry-After` header. The UI shows a
 - For hard global cost protection, **manually set a monthly spend limit** in the [Anthropic console](https://console.anthropic.com/) (Account → Billing → Spend limits). This is the only reliable safeguard against runaway LLM costs.
 - The demo/replay fallback path (`?demo=1` or `NEXT_PUBLIC_DEMO_FALLBACK=true`) makes no LLM calls and is unaffected by rate limiting.
 
-LLM output token caps per call: `plan` 4 000, `refine` 4 500, `email` 600.
+LLM output token caps per call: `plan` 8 000, `refine` 4 500, `email` 600 (defined in `lib/ai.ts` as `MAX_OUTPUT_TOKENS`).
 
 ## Security checklist (code-review)
 
 - **No `dangerouslySetInnerHTML`** - all LLM text is rendered as plain React text nodes; run `grep -r dangerouslySetInnerHTML app components lib` to verify.
 - **No logging of free text or keys** - server logs must contain only enumerated, non-sensitive fields (route, eventType, latencyMs, tokens, ok). Never log user input, plan content, or env var values.
-- **Server-only env vars** - `ANTHROPIC_API_KEY`, `LLM_MODEL`, `DATABASE_URL`, `UNSPLASH_ACCESS_KEY` must never appear in client components or files without a `server-only` guard. Only `NEXT_PUBLIC_*` vars are safe to read on the client.
+- **Server-only env vars** - `ANTHROPIC_API_KEY`, `LLM_MODEL`, `DATABASE_URL`, `UNSPLASH_ACCESS_KEY` must never appear in client components or files without a `server-only` guard. Only `NEXT_PUBLIC_*` vars are safe to read on the client. `lib/ai.ts` (the only module that reads the LLM secrets) imports `server-only`, so any attempt to import it from a Client Component fails the build rather than silently leaking into the client bundle.
 - **Bundle inspection** - after `pnpm build`, `grep -r sk-ant .next/static` must return nothing.
 - **Security headers** - `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, and `Permissions-Policy` are applied to all routes via `next.config.ts`.
 

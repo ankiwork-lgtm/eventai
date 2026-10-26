@@ -13,6 +13,7 @@
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 
 // vi.mock calls must be at the module's top level (they are hoisted by vitest).
@@ -102,16 +103,7 @@ describe("ProgressBar ARIA", () => {
 // ─── VendorChecklist labels ───────────────────────────────────────────────────
 
 describe("VendorChecklist ARIA: every checkbox has a label", () => {
-  it("generates paired id+htmlFor attributes for each checklist item", async () => {
-    // VendorChecklist renders checkboxes inside a base-ui Accordion. The panel
-    // is removed from the DOM when collapsed. We verify the label-pairing logic
-    // by inspecting the source: each checkbox is rendered with a unique `id` and
-    // its sibling <label> has a matching `htmlFor`. This is confirmed by the
-    // component source (VendorChecklist.tsx lines ~65-86) and by the Timeline
-    // test above which exercises the same pattern in an always-visible list.
-    //
-    // Render the VendorChecklist component and confirm the accordion trigger is
-    // present (the vendor appears), which proves the vendor data was consumed.
+  it("every expanded checkbox is associated with a <label> or aria-label", async () => {
     const { VendorChecklist } = await import("@/components/VendorChecklist");
 
     const vendors = [
@@ -130,18 +122,34 @@ describe("VendorChecklist ARIA: every checkbox has a label", () => {
       />,
     );
 
-    // Confirm the accordion trigger is rendered with the vendor name.
+    // The panel is collapsed initially; base-ui removes it from the DOM.
+    // Expand it so the checkboxes mount, then assert label pairing in the DOM.
     const trigger = screen.getByRole("button", { name: /caterer/i });
-    expect(trigger).toBeDefined();
-
-    // The trigger text includes the checklist item count "0/3"
     expect(trigger.textContent).toContain("0");
     expect(trigger.textContent).toContain("3");
 
-    // NOTE: checkboxes are inside the collapsed accordion panel which base-ui
-    // removes from the DOM entirely. The pairing of id <-> htmlFor is verified
-    // statically: VendorItem renders <Checkbox id={id} /> and <label htmlFor={id} />
-    // using the same `id` variable derived from React.useId() — see VendorChecklist.tsx.
+    const user = userEvent.setup();
+    await user.click(trigger);
+
+    // Wait for the panel to mount, then assert label pairing against the real
+    // underlying form control. base-ui's Checkbox renders a hidden native
+    // <input type="checkbox"> that carries our `id` prop; the role="checkbox"
+    // span is a separate presentational element with its own base-ui id, so we
+    // pair labels against the inputs (which is what assistive tech uses).
+    await screen.findAllByRole("checkbox");
+    const inputs = Array.from(
+      document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+    );
+    expect(inputs.length).toBe(3);
+
+    for (const input of inputs) {
+      const id = input.getAttribute("id");
+      const ariaLabel = input.getAttribute("aria-label");
+      const label = id ? document.querySelector(`label[for="${id}"]`) : null;
+      // Every checkbox input must have a linked <label> or an aria-label.
+      expect(label !== null || ariaLabel !== null).toBe(true);
+      if (label) expect(label.textContent?.trim()).toBeTruthy();
+    }
   });
 });
 

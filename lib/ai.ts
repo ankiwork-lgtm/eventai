@@ -33,6 +33,10 @@
  *      The parameter is omitted from all calls to avoid SDK warnings.
  */
 
+// Hard guard: this module reads server-only secrets (ANTHROPIC_API_KEY, LLM_MODEL).
+// Importing it from a Client Component is a build-time error, not a silent bundle leak.
+import "server-only";
+
 import { anthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, streamText, Output, type LanguageModel } from "ai";

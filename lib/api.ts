@@ -1,5 +1,4 @@
 import { type z } from "zod";
-export { getModel } from "@/lib/ai";
 
 export type ErrorCode = "INVALID_INPUT" | "RATE_LIMITED" | "LLM_ERROR" | "INTERNAL";
 

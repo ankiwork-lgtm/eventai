@@ -18,6 +18,7 @@ import { EventInputSchema } from "@/lib/schema";
 import { buildPlanPrompt, systemPromptFor } from "@/lib/prompts";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { logLlmCall } from "@/lib/observability";
+import { classifyLlmError } from "@/lib/llm-errors";
 
 export const maxDuration = 60;
 
@@ -84,15 +85,7 @@ export async function POST(req: Request): Promise<Response> {
 
     // Provider / setup errors raised before the first byte can be caught here.
     // Do NOT log raw provider errors — they may contain path or key details.
-    const msg = err instanceof Error ? err.message.toLowerCase() : "";
-    const isProviderError =
-      msg.includes("api") ||
-      msg.includes("model") ||
-      msg.includes("provider") ||
-      msg.includes("anthropic") ||
-      msg.includes("fetch");
-
-    if (isProviderError) {
+    if (classifyLlmError(err) === "provider") {
       return errorResponse(
         "LLM_ERROR",
         "The AI provider returned an error. Please try again.",
