@@ -296,9 +296,13 @@ export function PlanShell({ id }: { id: string }) {
   const isReadOnly = !!sharedRecord;
 
   // Current plan view: streaming partial while live, persisted plan otherwise.
+  // After streaming ends the persisted plan wins, so chat refinements (which
+  // update the record) are not masked by the stale streamed object.
   const object = replayObject ?? streamObject;
-  const plan: PlanView = object ?? effectiveRecord?.plan ?? null;
   const isStreaming = isLoading || isReplaying;
+  const plan: PlanView = isStreaming
+    ? (object ?? effectiveRecord?.plan ?? null)
+    : (effectiveRecord?.plan ?? object ?? null);
   const canLoadSample =
     !isReadOnly && !!record && matchDemoScenario(record.input) !== undefined;
 

@@ -15,6 +15,10 @@ This is not a generic checklist generator. The plan changes with who you are and
 
 Everything is rendered as real UI (chart, timeline with checkboxes, vendor accordion, idea cards), not raw text. Progress is saved and survives a refresh.
 
+## Demo
+
+▶ **[Watch the demo (MP4)](docs/screenshots/demo.mp4)** — cached scenario load → streaming plan → "cut the budget by 20%" → chart updates → Undo
+
 ## Screenshots
 
 Captured from a production build (`pnpm build` + `pnpm start`) using the cached Mumbai wedding fixture.
@@ -22,8 +26,6 @@ Captured from a production build (`pnpm build` + `pnpm start`) using the cached 
 | Landing | Plan dashboard (desktop) | Plan (375 px mobile) |
 |---|---|---|
 | ![Landing page with the three sample scenarios and intake form](docs/screenshots/landing.png) | ![Plan dashboard with budget donut chart and refine panel](docs/screenshots/plan-dashboard.png) | ![Plan on a 375 px viewport](docs/screenshots/plan-mobile-375.png) |
-
-> **TODO before submission:** add a short GIF of the live demo (streaming plan + "cut the budget by 20%" + Undo). No GIF has been recorded yet.
 
 ## Features
 
