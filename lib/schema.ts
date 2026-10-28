@@ -75,17 +75,35 @@ export const PlanSchema = z.object({
     .max(12),
   timeline: z
     .array(
-      z.object({
-        when: z.string().describe("human label, e.g. '6 months before'"),
-        monthsBefore: z.number().int().nonnegative().optional(),
-        daysBefore: z
-          .number()
-          .int()
-          .optional()
-          .describe("negative = after the event; 0 = event day"),
-        task: z.string(),
-        priority: z.enum(["high", "medium", "low"]),
-      }),
+      z
+        .object({
+          when: z.string().optional().describe("human label, e.g. '6 months before'"),
+          monthsBefore: z.number().int().nonnegative().optional(),
+          daysBefore: z
+            .number()
+            .int()
+            .optional()
+            .describe("negative = after the event; 0 = event day"),
+          task: z.string(),
+          priority: z.enum(["high", "medium", "low"]),
+        })
+        .transform((item) => {
+          if (item.when) return item;
+          // Synthesise a human label when the LLM omits it but provides numeric fields.
+          if (typeof item.daysBefore === "number") {
+            const d = item.daysBefore;
+            item.when =
+              d < 0
+                ? `${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"} after`
+                : d === 0
+                  ? "Event day"
+                  : `${d} day${d === 1 ? "" : "s"} before`;
+          } else if (typeof item.monthsBefore === "number") {
+            const m = item.monthsBefore;
+            item.when = m === 0 ? "Month of event" : `${m} month${m === 1 ? "" : "s"} before`;
+          }
+          return item;
+        }),
     )
     .min(6)
     .max(40),

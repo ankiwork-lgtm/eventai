@@ -41,12 +41,12 @@ export function isCompleteBudgetItem(item: MaybeItem): item is BudgetItem {
 
 export function isCompleteTimelineItem(item: MaybeItem): item is TimelineItem {
   if (!item) return false;
+  // `when` may be absent on streamed items and is synthesised by PlanSchema at
+  // full-parse time (from monthsBefore / daysBefore). Require task and priority;
+  // `when` being present is a bonus but not a blocker for rendering.
   return (
-    isNonEmptyString(item.when) &&
     isNonEmptyString(item.task) &&
-    (item.priority === "high" ||
-      item.priority === "medium" ||
-      item.priority === "low")
+    (item.priority === "high" || item.priority === "medium" || item.priority === "low")
   );
 }
 

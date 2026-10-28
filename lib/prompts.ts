@@ -10,6 +10,7 @@ export const RULES = `Rules:
 - timeline MUST run from the earliest sensible lead time through the day after the event (use daysBefore = -1 for that last task, 0 for event day).
 - Order timeline items chronologically (largest lead time first).
 - Provide monthsBefore for tasks more than 30 days out, daysBefore for tasks 30 days or less out.
+- Every timeline item MUST include a "when" field: a short human-readable label such as "4 months before", "45 days before", "Event day", or "1 day after".
 - vendors[].type SHOULD correspond to a budget category where applicable.
 - ideas MUST provide 4 to 8 creative, memorable concepts or interactive elements tailored to the event theme and cultural traditions.
 - Be concise so the full plan (summary, budget, timeline, vendors, ideas) fits in the output limit: summary at most 4 sentences; each budget tip one short sentence; each timeline task under 20 words; at most 12 timeline items; each idea description under 25 words.
