@@ -1,4 +1,22 @@
 import { beforeEach } from "vitest";
+import {
+  TransformStream as NodeTransformStream,
+  ReadableStream as NodeReadableStream,
+  WritableStream as NodeWritableStream,
+} from "node:stream/web";
+
+if (typeof globalThis.TransformStream === "undefined") {
+  // @ts-expect-error web stream global
+  globalThis.TransformStream = NodeTransformStream;
+}
+if (typeof globalThis.ReadableStream === "undefined") {
+  // @ts-expect-error web stream global
+  globalThis.ReadableStream = NodeReadableStream;
+}
+if (typeof globalThis.WritableStream === "undefined") {
+  // @ts-expect-error web stream global
+  globalThis.WritableStream = NodeWritableStream;
+}
 
 // Register the `toHaveNoViolations` matcher for axe-core accessibility assertions.
 // vitest-axe 0.1.0 ships an empty `extend-expect` entry, so register the matcher

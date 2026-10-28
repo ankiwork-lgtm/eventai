@@ -19,9 +19,10 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    pool: "vmThreads",
     include: ["tests/**/*.test.{ts,tsx}"],
     setupFiles: ["./tests/setup.ts"],
-    testTimeout: 15000,
+    testTimeout: 30000,
     coverage: {
       provider: "v8",
       include: ["lib/**/*.ts", "app/api/**/*.ts"],

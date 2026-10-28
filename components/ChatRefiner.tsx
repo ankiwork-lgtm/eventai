@@ -35,6 +35,8 @@ const QUICK_SUGGESTIONS = [
 ] as const;
 
 const MAX_MSG_LENGTH = 500;
+/** Max chat history entries sent to /api/refine (server trims to the same). */
+export const HISTORY_SEND_LIMIT = 6;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,7 +89,7 @@ export function ChatRefiner({
       setOverlay([{ id: optimisticId, role: "user", content: message }]);
 
       try {
-        const history = record.chat.slice(-6);
+        const history = record.chat.slice(-HISTORY_SEND_LIMIT);
 
         const res = await fetch("/api/refine", {
           method: "POST",

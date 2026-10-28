@@ -48,6 +48,7 @@ export function DemoScenarios({
                 variant="outline"
                 size="sm"
                 className="w-full justify-center text-xs h-8 cursor-pointer"
+                data-testid={`demo-${scenario.id}-fill`}
                 onClick={() => onSelectScenario?.(scenario)}
                 aria-label={`Fill form with ${scenario.label} scenario`}
               >
@@ -58,6 +59,7 @@ export function DemoScenarios({
                   type="button"
                   variant="ghost"
                   size="sm"
+                  data-testid={`demo-${scenario.id}-instant`}
                   className="w-full justify-center text-[11px] text-muted-foreground hover:text-foreground h-7 px-1 cursor-pointer"
                   onClick={() => onInstantGenerate(scenario)}
                   aria-label={`Generate instantly (cached): ${scenario.label}`}

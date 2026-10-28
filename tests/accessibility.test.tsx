@@ -11,8 +11,8 @@
  *    prefers-reduced-motion compliance
  */
 
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 
@@ -263,5 +263,111 @@ describe("StreamingBadge reduced motion", () => {
     const badge = screen.getByRole("status");
     expect(badge).toBeDefined();
     expect(badge.getAttribute("aria-label")).toBe("Generating");
+  });
+});
+
+// --- Dialog focus management (G2-T02) ----------------------------------------
+
+describe("EmailDialog focus management", () => {
+  const eventInput = {
+    eventType: "wedding" as const,
+    date: "2099-06-15",
+    guestCount: 100,
+    totalBudget: 100000,
+    currency: "INR",
+    city: "Mumbai",
+  };
+  const plan = { summary: "S", budget: [], timeline: [], vendors: [], ideas: [] };
+
+  /** Host owning the open state, mirroring how PlanShell opens the dialog. */
+  async function renderHost() {
+    const { EmailDialog } = await import("@/components/EmailDialog");
+    function Host() {
+      const [open, setOpen] = React.useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Draft email
+          </button>
+          <EmailDialog
+            open={open}
+            onOpenChange={setOpen}
+            vendorType="Caterer"
+            eventInput={eventInput}
+            plan={plan}
+          />
+        </>
+      );
+    }
+    render(<Host />);
+    return screen.getByRole("button", { name: "Draft email" });
+  }
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+        json: async () => ({ subject: "Inquiry", body: "Hello" }),
+      }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("moves focus inside the dialog when it opens", async () => {
+    const user = userEvent.setup();
+    const trigger = await renderHost();
+
+    await user.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+
+    await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
+    expect(document.activeElement).not.toBe(trigger);
+  });
+
+  it("keeps focus inside the dialog while tabbing", async () => {
+    const user = userEvent.setup();
+    const trigger = await renderHost();
+
+    await user.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    await screen.findByLabelText("Subject");
+
+    // Tab past the last control. base-ui parks focus on a hidden focus-guard
+    // sentinel at the dialog edge and immediately redirects it back inside.
+    for (let i = 0; i < 10; i++) {
+      await user.tab();
+      await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
+      expect(document.activeElement).not.toBe(trigger);
+    }
+  });
+
+  it("returns focus to the trigger when closed with Escape", async () => {
+    const user = userEvent.setup();
+    const trigger = await renderHost();
+
+    await user.click(trigger);
+    await screen.findByRole("dialog");
+
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
+  it("returns focus to the trigger when closed with the Close button", async () => {
+    const user = userEvent.setup();
+    const trigger = await renderHost();
+
+    await user.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+
+    await user.click(within(dialog).getAllByRole("button", { name: "Close" })[0]);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
   });
 });
