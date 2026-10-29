@@ -63,7 +63,7 @@ Copy `.env.example` to `.env.local`. Next.js loads it automatically; restart `pn
 |---|---|---|---|---|
 | `ANTHROPIC_API_KEY` | Server only | **Yes** for live generation, refine and email (not needed for the cached demo path) | none | Anthropic API key, read by `@ai-sdk/anthropic`. |
 | `ANTHROPIC_BASE_URL` | Server only | No | `https://api.anthropic.com/v1` | Point at an LLM gateway/proxy. Read by `@ai-sdk/anthropic`; must include the `/v1` suffix. |
-| `LLM_MODEL` | Server only | No | `claude-sonnet-4-5` | Model id, read in `lib/ai.ts`. |
+| `LLM_MODEL` | Server only | No | `claude-sonnet-5-5` | Model id, read in `lib/ai.ts`. |
 | `NEXT_PUBLIC_DEMO_FALLBACK` | **Public** (inlined into the client bundle) | No | `false` | When `"true"`, the plan page replays the cached fixture for the three demo scenarios instead of calling the API. Same as `?demo=1` per visit. |
 | `UNSPLASH_ACCESS_KEY` | Server only | No | none | Enables mood-board photos via `/api/moodboard`. Without it the route returns an empty list and the mood board section is simply hidden. |
 | `DATABASE_URL` | Server only | No | none | Listed in `.env.example` and the specs as a Phase 4 placeholder, but **no code reads it today**. Storage is browser `localStorage` only. |
@@ -169,6 +169,7 @@ Each API route enforces an **in-memory sliding-window rate limit** per client IP
 | `POST /api/plan` | 5 requests per 10 minutes |
 | `POST /api/refine` | 20 requests per 10 minutes |
 | `POST /api/email` | 20 requests per 10 minutes |
+| `GET /api/moodboard` | 30 requests per 10 minutes |
 
 Exceeding the limit returns HTTP 429 with a `Retry-After` header. The UI shows a toast with the wait time.
 
@@ -186,7 +187,7 @@ LLM output token caps per call: `plan` 8 000, `refine` 4 500, `email` 600 (defin
 - **No logging of free text or keys** - server logs must contain only enumerated, non-sensitive fields (route, eventType, latencyMs, tokens, ok). Never log user input, plan content, or env var values.
 - **Server-only env vars** - `ANTHROPIC_API_KEY`, `LLM_MODEL`, `DATABASE_URL`, `UNSPLASH_ACCESS_KEY` must never appear in client components or files without a `server-only` guard. Only `NEXT_PUBLIC_*` vars are safe to read on the client. `lib/ai.ts` (the only module that reads the LLM secrets) imports `server-only`, so any attempt to import it from a Client Component fails the build rather than silently leaking into the client bundle.
 - **Bundle inspection** - after `pnpm build`, `grep -r sk-ant .next/static` must return nothing.
-- **Security headers** - `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, and `Permissions-Policy` are applied to all routes via `next.config.ts`.
+- **Security headers** - `Content-Security-Policy` (CSP), `Strict-Transport-Security` (HSTS), `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`, and `Permissions-Policy` are applied to all routes via `next.config.ts`.
 
 ## Known limitations
 
