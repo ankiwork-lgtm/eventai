@@ -6,7 +6,7 @@
  * scenario streams in section by section with zero API/network activity.
  */
 
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeAll } from "vitest";
 import { render, screen, waitFor, cleanup, act } from "@testing-library/react";
 import React from "react";
 import { DEMO_SCENARIOS } from "@/lib/demo";
@@ -70,6 +70,13 @@ vi.mock("recharts", () => {
 });
 
 afterEach(cleanup);
+
+// The first dynamic import of the page pulls in the whole dashboard module graph, which
+// took ~5s of the first test's 15s budget and made it time out on a loaded machine.
+// Pay that cost once here, outside any single test's timeout.
+beforeAll(async () => {
+  await import("@/app/plan/[id]/page");
+}, 60_000);
 
 describe("PlanShell replay (real replayPlan + real fixture)", () => {
   for (const scenario of DEMO_SCENARIOS) {

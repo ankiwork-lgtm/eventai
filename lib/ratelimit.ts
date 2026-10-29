@@ -33,6 +33,7 @@ export const ROUTE_LIMITS: Record<string, RateLimitConfig> = {
   "/api/plan": { limit: 5, windowMs: 10 * 60 * 1000 },
   "/api/refine": { limit: 20, windowMs: 10 * 60 * 1000 },
   "/api/email": { limit: 20, windowMs: 10 * 60 * 1000 },
+  "/api/moodboard": { limit: 30, windowMs: 10 * 60 * 1000 },
 };
 
 /** Bucket: an array of request timestamps in ascending order. */

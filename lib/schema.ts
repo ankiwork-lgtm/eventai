@@ -55,6 +55,8 @@ export const EventInputSchema = EventInputBaseSchema.extend({
   ),
 });
 
+/** Event input as stored/read back: validated WITHOUT the "not in the past" refinement. */
+export type EventInputBase = z.infer<typeof EventInputBaseSchema>;
 export type EventInput = z.infer<typeof EventInputSchema>;
 export type EventInputForm = z.input<typeof EventInputSchema>;
 

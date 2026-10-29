@@ -11,6 +11,10 @@
  *   otherwise `en-US`.
  * - `maximumFractionDigits: 0` so budgets render as whole units.
  * - Falls back gracefully if an unknown currency code is passed.
+ *
+ * @param amount - The amount to format. Non-finite values are formatted as 0.
+ * @param currency - ISO 4217 code (case-insensitive); empty falls back to INR.
+ * @returns The formatted string, e.g. "₹10,00,000" or "$1,000".
  */
 export function formatMoney(amount: number, currency: string): string {
   const code = (currency || "INR").toUpperCase();
@@ -39,6 +43,9 @@ export function formatMoney(amount: number, currency: string): string {
  *   days < 0   → "Event completed"
  *
  * `days` is a whole-day delta (see lib/dates.ts `daysUntil`).
+ *
+ * @param days - Whole days until the event (negative once it has passed).
+ * @returns The countdown label, or an empty string when `days` is not finite.
  */
 export function countdownText(days: number): string {
   if (!Number.isFinite(days)) return "";
@@ -51,6 +58,9 @@ export function countdownText(days: number): string {
 /**
  * Formats a YYYY-MM-DD string as a readable local date, e.g. "14 Feb 2027".
  * Parses as a LOCAL calendar date (DD-15) so there is no UTC off-by-one.
+ *
+ * @param dateStr - A date in strict `YYYY-MM-DD` form.
+ * @returns The formatted date, or `dateStr` unchanged if it is not a valid date.
  */
 export function formatEventDate(dateStr: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);

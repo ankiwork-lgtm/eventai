@@ -103,15 +103,22 @@ export async function parseBody<T>(
 }
 
 /**
- * Extracts client IP from the x-forwarded-for header (first entry), falling back to x-real-ip or "unknown".
+ * Extracts client IP, preferring trusted platform headers set by reverse proxies
+ * (x-real-ip, x-vercel-ip, cf-connecting-ip) before falling back to the
+ * client-spoofable x-forwarded-for header.
  */
 export function getClientIp(req: Request): string {
+  const trustedHeader =
+    req.headers.get("x-real-ip") ||
+    req.headers.get("x-vercel-ip") ||
+    req.headers.get("cf-connecting-ip");
+
+  if (trustedHeader) return trustedHeader.trim();
+
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
     if (first) return first;
   }
-  const realIp = req.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
   return "unknown";
 }

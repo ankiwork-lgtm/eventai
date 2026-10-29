@@ -1,14 +1,25 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+/**
+ * Clicks a demo "Generate instantly" button and waits for the plan page.
+ *
+ * On a cold dev server the first click can land before React has hydrated, so the
+ * onClick handler is not attached yet and nothing happens. Retry the click until the
+ * navigation actually occurs instead of relying on a fixed timeout.
+ */
+async function startDemo(page: Page, testId: string) {
+  await page.goto("/");
+  await expect(async () => {
+    await page.getByTestId(testId).click();
+    await expect(page).toHaveURL(/\/plan\/[a-f0-9-]+/, { timeout: 2000 });
+  }).toPass({ timeout: 30000 });
+}
 
 test.describe("Demo Mode Replay", () => {
   test("Mumbai wedding cached plan streams and shows budget tab", async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.getByTestId("demo-wedding-mumbai-instant").click();
-
-    // Verify redirected to plan page
-    await expect(page).toHaveURL(/\/plan\/[a-f0-9-]+/);
+    await startDemo(page, "demo-wedding-mumbai-instant");
 
     // Wait for streaming badges across tabs to disappear
     await expect(
@@ -38,10 +49,7 @@ test.describe("Demo Mode Replay", () => {
   test("Superhero birthday cached plan replays successfully", async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.getByTestId("demo-birthday-superhero-instant").click();
-
-    await expect(page).toHaveURL(/\/plan\/[a-f0-9-]+/);
+    await startDemo(page, "demo-birthday-superhero-instant");
     await expect(
       page.getByRole("status", { name: "Generating" }),
     ).toHaveCount(0, { timeout: 25000 });
@@ -50,10 +58,7 @@ test.describe("Demo Mode Replay", () => {
   });
 
   test("Community Diwali cached plan replays successfully", async ({ page }) => {
-    await page.goto("/");
-    await page.getByTestId("demo-community-diwali-instant").click();
-
-    await expect(page).toHaveURL(/\/plan\/[a-f0-9-]+/);
+    await startDemo(page, "demo-community-diwali-instant");
     await expect(
       page.getByRole("status", { name: "Generating" }),
     ).toHaveCount(0, { timeout: 25000 });

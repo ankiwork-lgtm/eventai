@@ -7,8 +7,11 @@
 
 import type { Plan } from "@/lib/schema";
 
+/** Result of {@link normalizePlan}: the corrected plan plus any human-readable adjustment warnings. */
 export type BudgetNormalisationResult = {
+  /** The plan with its budget costs and percents normalised. */
   plan: Plan;
+  /** Messages describing dropped lines or large adjustments; empty when nothing notable changed. */
   warnings: string[];
 };
 
@@ -24,6 +27,11 @@ export type BudgetNormalisationResult = {
  * 4. cost_i = floor(w_i × totalBudget); distribute remainder whole units to largest fractional parts.
  * 5. percent_i = round(w_i × 100, 1); adjust the largest item so Σ percent = 100.0.
  * 6. Emit a warning if any value moved by > 2 points or if items were dropped.
+ *
+ * @param plan - The plan whose `budget` should be normalised. Not mutated.
+ * @param totalBudget - The exact amount the final costs must sum to.
+ * @returns The normalised plan and any warnings. A plan with no usable budget is
+ *   returned unchanged with a "Budget missing" warning.
  */
 export function normalizePlan(
   plan: Plan,

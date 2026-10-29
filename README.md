@@ -83,8 +83,12 @@ All scripts are defined in [`package.json`](package.json).
 | `pnpm typecheck` | `tsc --noEmit`. |
 | `pnpm test` | Run the Vitest suite once. |
 | `pnpm test:watch` | Vitest in watch mode. |
+| `pnpm test:coverage` | Vitest with a V8 coverage report. Fails if coverage drops below the thresholds in [`vitest.config.ts`](vitest.config.ts). |
+| `pnpm test:e2e` | Playwright end-to-end tests in [`e2e/`](e2e) (alias: `pnpm e2e`). Starts `pnpm dev` itself and needs Google Chrome installed. The live-LLM test is skipped unless `ANTHROPIC_API_KEY` is set. |
 
 Full pre-demo check: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
+
+Quality gate (what a CI job should run; there is no CI workflow in this repo yet): `pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm test:e2e`. `pnpm test` stays unit-only so it is fast and needs no browser.
 
 ## Demo scenarios
 

@@ -109,3 +109,69 @@ describe("PlanSchema", () => {
     }
   });
 });
+
+// ─── PlanSchema timeline .transform() branch coverage ────────────────────────
+// The transform synthesises a `when` label from numeric fields when the LLM
+// omits it. Every branch must be exercised so the coverage gate stays green.
+
+describe("PlanSchema timeline .transform() label synthesis", () => {
+  /** Build a minimal valid plan with a single timeline item (no `when`). */
+  function parseSingleItem(item: Record<string, unknown>) {
+    const base = validPlan();
+    // Replace the whole timeline with 6 copies of the same item so `.min(6)` passes.
+    base.timeline = Array.from({ length: 6 }, () => ({ ...item })) as Plan["timeline"];
+    const res = PlanSchema.safeParse(base);
+    if (!res.success) throw new Error(JSON.stringify(res.error.issues));
+    return res.data.timeline[0];
+  }
+
+  it("preserves an existing `when` label without modification", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", when: "already set" });
+    expect(item.when).toBe("already set");
+  });
+
+  it("synthesises 'Event day' when daysBefore is 0", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", daysBefore: 0 });
+    expect(item.when).toBe("Event day");
+  });
+
+  it("synthesises '1 day before' (singular) when daysBefore is 1", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", daysBefore: 1 });
+    expect(item.when).toBe("1 day before");
+  });
+
+  it("synthesises '3 days before' (plural) when daysBefore is 3", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", daysBefore: 3 });
+    expect(item.when).toBe("3 days before");
+  });
+
+  it("synthesises '1 day after' (singular) when daysBefore is -1", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", daysBefore: -1 });
+    expect(item.when).toBe("1 day after");
+  });
+
+  it("synthesises '2 days after' (plural) when daysBefore is -2", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", daysBefore: -2 });
+    expect(item.when).toBe("2 days after");
+  });
+
+  it("synthesises 'Month of event' when monthsBefore is 0", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", monthsBefore: 0 });
+    expect(item.when).toBe("Month of event");
+  });
+
+  it("synthesises '1 month before' (singular) when monthsBefore is 1", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", monthsBefore: 1 });
+    expect(item.when).toBe("1 month before");
+  });
+
+  it("synthesises '3 months before' (plural) when monthsBefore is 3", () => {
+    const item = parseSingleItem({ task: "T", priority: "high", monthsBefore: 3 });
+    expect(item.when).toBe("3 months before");
+  });
+
+  it("leaves `when` undefined when neither daysBefore nor monthsBefore is provided", () => {
+    const item = parseSingleItem({ task: "T", priority: "high" });
+    expect(item.when).toBeUndefined();
+  });
+});

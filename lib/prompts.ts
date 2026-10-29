@@ -1,5 +1,5 @@
 import { daysUntil } from "@/lib/dates";
-import type { EventInput, EventType } from "@/lib/schema";
+import type { EventInput, EventType, Plan } from "@/lib/schema";
 
 export const BASE_PROMPT = `You are an expert event planner. Tailor plans to the culture, location, currency, guest count, and budget provided. Be specific and realistic about local costs.`;
 
@@ -88,9 +88,9 @@ export const REFINE_RULES = `Refine rules:
 export type RefineChatMessage = { role: "user" | "assistant"; content: string };
 
 export function buildRefinePrompt(
-  plan: import("@/lib/schema").Plan,
+  plan: Plan,
   message: string,
-  eventInput: import("@/lib/schema").EventInput,
+  eventInput: EventInput,
   history: RefineChatMessage[] = [],
 ): string {
   const lines: string[] = [
@@ -110,7 +110,7 @@ export function buildRefinePrompt(
   return lines.join("\n\n");
 }
 
-export function refineSystemPromptFor(eventType: import("@/lib/schema").EventType): string {
+export function refineSystemPromptFor(eventType: EventType): string {
   return [systemPromptFor(eventType), REFINE_RULES].join("\n\n");
 }
 
@@ -131,7 +131,7 @@ export function buildEmailPrompt({
   budgetLine,
 }: {
   vendor: { type: string; checklist: string[]; budgetRange: string };
-  eventInput: import("@/lib/schema").EventInput;
+  eventInput: EventInput;
   summary?: string;
   budgetLine?: { category: string; estimatedCost: number; percent: number; tips: string };
 }): string {

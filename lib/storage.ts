@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EventInputBaseSchema, PlanSchema } from "@/lib/schema";
-import type { EventInput } from "@/lib/schema";
+import type { EventInputBase } from "@/lib/schema";
 import type { StoredPlan, StoredPlanMeta } from "@/lib/types";
 
 /**
@@ -215,18 +215,18 @@ export function createLocalRepo(): LocalRepo {
 export const localRepo: LocalRepo = createLocalRepo();
 
 /**
- * Best-effort recovery of a usable EventInput from a corrupt raw record (P2-T10).
+ * Best-effort recovery of a usable EventInputBase from a corrupt raw record (P2-T10).
  * Returns the parsed input when the `input` field still validates against the
  * base schema (no future-date rule), otherwise null. Enables a safe
  * "Regenerate from input" action without resurrecting a broken plan.
  */
-export function salvageInput(raw: string): EventInput | null {
+export function salvageInput(raw: string): EventInputBase | null {
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
     const input = (parsed as { input?: unknown }).input;
     const result = EventInputBaseSchema.safeParse(input);
-    return result.success ? (result.data as EventInput) : null;
+    return result.success ? result.data : null;
   } catch {
     return null;
   }

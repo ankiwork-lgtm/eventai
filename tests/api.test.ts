@@ -15,7 +15,6 @@ import {
   MAX_OUTPUT_TOKENS_PLAN,
   MAX_OUTPUT_TOKENS_REFINE,
   MAX_RETRIES,
-  schemaForLLM,
 } from "@/lib/ai";
 
 const SimpleSchema = z.object({
@@ -174,10 +173,5 @@ describe("lib/ai constants and helpers", () => {
   it("getModel supports custom model identifier", () => {
     const model = getModel("claude-3-5-haiku-20241022");
     expect((model as { modelId?: string }).modelId).toBe("claude-3-5-haiku-20241022");
-  });
-
-  it("schemaForLLM passes through schema (DD-6)", () => {
-    const testSchema = z.object({ test: z.string() });
-    expect(schemaForLLM(testSchema)).toBe(testSchema);
   });
 });

@@ -60,7 +60,7 @@ export function MoodBoard({ input }: { input?: EventInput | null }) {
   return (
     <section className="flex flex-col gap-4 border-t pt-6">
       <div className="flex items-center gap-2">
-        <SparklesIcon className="size-4 text-primary" />
+        <SparklesIcon className="size-4 text-primary" aria-hidden="true" />
         <h3 className="text-base font-semibold">Mood Board & Visual Decor Inspiration</h3>
       </div>
 

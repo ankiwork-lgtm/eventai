@@ -10,7 +10,7 @@
 import React, { useEffect, useState } from "react";
 import { CheckIcon, CopyIcon, MailIcon, RefreshCwIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -139,7 +139,7 @@ export function EmailDialog({
       <DialogContent className="grid-cols-[minmax(0,1fr)] sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MailIcon className="size-5 text-primary" />
+            <MailIcon className="size-5 text-primary" aria-hidden="true" />
             Draft inquiry for {vendorType}
           </DialogTitle>
           <DialogDescription>
@@ -218,19 +218,14 @@ export function EmailDialog({
 
             <a
               href={mailtoUrl}
-              className="inline-flex"
               target="_blank"
               rel="noopener noreferrer"
+              aria-disabled={loading || !!error || !body}
+              tabIndex={loading || !!error || !body ? -1 : undefined}
+              className={buttonVariants({ size: "sm" }) + " gap-1.5" + (loading || !!error || !body ? " pointer-events-none opacity-50" : "")}
             >
-              <Button
-                type="button"
-                size="sm"
-                disabled={loading || !!error || !body}
-                className="gap-1.5"
-              >
-                <MailIcon className="size-4" />
-                Open in mail app
-              </Button>
+              <MailIcon className="size-4" aria-hidden="true" />
+              Open in mail app
             </a>
           </div>
         </DialogFooter>

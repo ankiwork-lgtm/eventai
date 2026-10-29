@@ -220,6 +220,7 @@ export function ChatRefiner({
                  <button
                    type="button"
                    onClick={handleUndo}
+                   aria-label={`Undo: revert "${msg.content.slice(0, 40)}${msg.content.length > 40 ? "…" : ""}"`}
                    className="mt-1 min-h-[40px] px-1 text-xs text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded"
                  >
                    Undo
@@ -250,6 +251,7 @@ export function ChatRefiner({
                <button
                  type="button"
                  onClick={handleRetry}
+                 aria-label="Retry last message"
                  className="mt-1 min-h-[40px] px-1 text-xs text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded"
                >
                  Retry

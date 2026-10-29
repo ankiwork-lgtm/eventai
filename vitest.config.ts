@@ -28,6 +28,15 @@ export default defineConfig({
       include: ["lib/**/*.ts", "app/api/**/*.ts"],
       exclude: ["lib/fixtures/**"],
       reporter: ["text", "html"],
+      // Regression gate, set just below measured coverage (stmts 90.9 / branch 79.8 /
+      // funcs 97.2 / lines 91.9). Branches is the weak spot (lib/schema.ts timeline
+      // transform, lib/export.ts); raise toward 85 as those gain tests.
+      thresholds: {
+        lines: 91,
+        functions: 95,
+        statements: 90,
+        branches: 78,
+      },
     },
   },
 });

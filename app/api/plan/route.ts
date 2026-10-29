@@ -13,8 +13,10 @@
  */
 
 import { errorResponse, parseBody, getClientIp } from "@/lib/api";
+import type { ParseBodyResult } from "@/lib/api";
 import { streamPlan } from "@/lib/ai";
 import { EventInputSchema } from "@/lib/schema";
+import type { EventInput } from "@/lib/schema";
 import { buildPlanPrompt, systemPromptFor } from "@/lib/prompts";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { logLlmCall } from "@/lib/observability";
@@ -36,7 +38,7 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   // ── Parse + validate request body ────────────────────────────────────────
-  let parsed;
+  let parsed: ParseBodyResult<EventInput>;
   try {
     parsed = await parseBody(req, EventInputSchema);
   } catch {

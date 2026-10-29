@@ -25,8 +25,9 @@
  *      partial streams and errors via its `onError` / `error` hook states (DD-8).
  *
  * 4. JSON Schema Array Bounds (DD-6):
- *    - Anthropic tool calling accepts JSON Schema `minItems` / `maxItems`.
- *    - The `schemaForLLM` helper provides a clean hook if array constraints ever need relaxation.
+ *    - Anthropic tool calling accepts JSON Schema `minItems` / `maxItems`, so schemas are
+ *      passed to `Output.object` unchanged. If a provider ever rejects them, strip the
+ *      bounds at the call sites in `streamPlan` / `generateStructured` and rely on prompt text.
  *
  * 5. Temperature (model-specific):
  *    - claude-haiku-5-5 / claude-sonnet-5-5 / claude-opus-5-5 do not support `temperature`.
@@ -80,15 +81,6 @@ export function getModel(modelId?: string): LanguageModel {
 }
 
 /**
- * Helper to prepare / adapt a Zod schema for LLM structured output (DD-6).
- * Passes through the schema, providing an extension point if provider-specific
- * keyword stripping is ever needed.
- */
-export function schemaForLLM<T extends z.ZodTypeAny>(schema: T): T {
-  return schema;
-}
-
-/**
  * Token usage reported by the SDK on stream completion.
  * Mirrors `LanguageModelUsage` (ai v7): both fields may be `undefined`.
  */
@@ -101,7 +93,7 @@ export type LlmUsage = {
 export type StreamPlanFinish = {
   usage: LlmUsage;
   object: Plan | undefined;
-  error: unknown | undefined;
+  error?: unknown;
 };
 
 export type StreamPlanOptions = {
@@ -126,7 +118,7 @@ export type StreamPlanOptions = {
  */
 export function streamPlan(options: StreamPlanOptions) {
   const model = options.model ?? getModel();
-  const schema = schemaForLLM(options.schema ?? PlanSchema);
+  const schema = options.schema ?? PlanSchema;
 
   return streamText({
     model,
@@ -169,7 +161,7 @@ export type GenerateStructuredOptions<T> = {
  */
 export async function generateStructured<T>(options: GenerateStructuredOptions<T>) {
   const model = options.model ?? getModel();
-  const schema = schemaForLLM(options.schema);
+  const schema = options.schema;
 
   const result = await generateText({
     model,

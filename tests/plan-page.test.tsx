@@ -15,6 +15,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import type { Plan } from "@/lib/schema";
+import type { StoredPlan } from "@/lib/types";
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -25,17 +27,22 @@ const mockClear = vi.fn();
 let mockObject: Record<string, unknown> | undefined = undefined;
 let mockIsLoading = false;
 let mockError: Error | undefined = undefined;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockOnFinish: ((e: { object: any; error: Error | undefined }) => void) | undefined;
-let mockOnError: ((e: Error) => void) | undefined;
+type FinishHandler = (e: { object: Plan | undefined; error: Error | undefined }) => void;
+type ErrorHandler = (e: Error) => void;
+
+let mockOnFinish: FinishHandler | undefined;
+let mockOnError: ErrorHandler | undefined;
+/** When true, `submit` gets a new identity every render (re-triggers effects that depend on it). */
+let mockUnstableSubmit = false;
 
 vi.mock("@ai-sdk/react", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useObject: (opts: { onFinish?: any; onError?: any }) => {
+  useObject: (opts: { onFinish?: FinishHandler; onError?: ErrorHandler }) => {
     mockOnFinish = opts.onFinish;
     mockOnError = opts.onError;
     return {
-      submit: mockSubmit,
+      submit: mockUnstableSubmit
+        ? (...args: unknown[]) => mockSubmit(...args)
+        : mockSubmit,
       stop: mockStop,
       clear: mockClear,
       object: mockObject,
@@ -47,7 +54,7 @@ vi.mock("@ai-sdk/react", () => ({
 
 const mockGet = vi.fn();
 const mockInspect = vi.fn();
-const mockSave = vi.fn();
+const mockSave = vi.fn<(record: StoredPlan) => Promise<void>>();
 const mockRemove = vi.fn();
 
 vi.mock("@/lib/storage", async (importOriginal) => {
@@ -93,8 +100,11 @@ vi.mock("@/lib/replay", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ({ href, children, ...props }: any) =>
+  default: ({
+    href,
+    children,
+    ...props
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement>) =>
     React.createElement("a", { href, ...props }, children),
 }));
 
@@ -103,8 +113,7 @@ vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 // Recharts' ResponsiveContainer needs a measured width; stub the chart lib so the
 // donut renders in jsdom without layout.
 vi.mock("recharts", () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Passthrough = ({ children }: any) =>
+  const Passthrough = ({ children }: React.PropsWithChildren) =>
     React.createElement("div", null, children);
   const Noop = () => null;
   return {
@@ -201,6 +210,7 @@ beforeEach(() => {
   mockOnFinish = undefined;
   mockOnError = undefined;
   searchString = "";
+  mockUnstableSubmit = false;
 });
 
 afterEach(() => {
@@ -299,6 +309,62 @@ describe("Plan dashboard", () => {
     expect(mockSubmit).toHaveBeenCalledWith(validInput);
   });
 
+  // Invariant (phase-1-scaffold "done when"): no double API call in Strict Mode.
+  // PlanShell guards the auto-submit effect with a `submitted` useRef so the stream
+  // starts exactly once even when the effect re-runs. The effect depends on `submit`,
+  // whose identity is not guaranteed stable, so these tests give it a fresh identity on
+  // every render: without the guard each re-render would fire another request.
+  describe("Strict Mode double-call guard", () => {
+    beforeEach(() => {
+      mockUnstableSubmit = true;
+    });
+
+    async function renderStrict(id = "test-id-001") {
+      const { default: PlanPage } = await import("@/app/plan/[id]/page");
+      const params = Promise.resolve({ id });
+      let utils!: ReturnType<typeof render>;
+      await act(async () => {
+        utils = render(
+          <React.StrictMode>
+            <PlanPage params={params} />
+          </React.StrictMode>,
+        );
+      });
+      return { utils, params, PlanPage };
+    }
+
+    it("does not submit again when the tree re-renders after the first submit", async () => {
+      mockInspect.mockResolvedValue(inspectOk(makeRecord({ plan: null })));
+
+      const { utils, params, PlanPage } = await renderStrict();
+      await waitFor(() => expect(mockSubmit).toHaveBeenCalledTimes(1));
+
+      // Force several extra render passes (each re-runs effects under Strict Mode).
+      for (let i = 0; i < 3; i++) {
+        await act(async () => {
+          utils.rerender(
+            <React.StrictMode>
+              <PlanPage params={params} />
+            </React.StrictMode>,
+          );
+        });
+      }
+
+      expect(mockSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it("never submits when the stored record already has a plan", async () => {
+      mockInspect.mockResolvedValue(inspectOk(makeRecord({ plan: validPlanData })));
+
+      await renderStrict();
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { name: /wedding/i })).toBeTruthy(),
+      );
+
+      expect(mockSubmit).not.toHaveBeenCalled();
+    });
+  });
+
   it("onFinish saves the finished plan to storage", async () => {
     mockInspect.mockResolvedValueOnce(inspectOk(makeRecord({ plan: null })));
     mockSave.mockResolvedValue(undefined);
@@ -314,11 +380,10 @@ describe("Plan dashboard", () => {
     });
 
     await waitFor(() => expect(mockSave).toHaveBeenCalledTimes(1));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const saved = mockSave.mock.calls[0][0] as any;
-    expect(saved.plan.summary).toBe(validPlanData.summary);
+    const saved = mockSave.mock.calls[0][0];
+    expect(saved.plan?.summary).toBe(validPlanData.summary);
     // Budget is normalized via normalizePlan (P4-T01) to match totalBudget (500000)
-    const totalCost = saved.plan.budget.reduce((a: number, b: { estimatedCost: number }) => a + b.estimatedCost, 0);
+    const totalCost = (saved.plan?.budget ?? []).reduce((a, b) => a + b.estimatedCost, 0);
     expect(totalCost).toBe(validInput.totalBudget);
     expect(saved.id).toBe("test-id-001");
   });
@@ -440,9 +505,8 @@ describe("Plan dashboard replay mode", () => {
     });
 
     await waitFor(() => expect(mockSave).toHaveBeenCalledTimes(1));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const saved = mockSave.mock.calls[0][0] as any;
-    expect(saved.plan.summary).toBe(fixture.summary);
+    const saved = mockSave.mock.calls[0][0];
+    expect(saved.plan?.summary).toBe(fixture.summary);
     expect(mockSubmit).not.toHaveBeenCalled();
   });
 

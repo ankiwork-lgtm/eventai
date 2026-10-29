@@ -71,6 +71,9 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
   },
 ];
 
+/**
+ * Returns the demo scenario with the given id, or `undefined` if not found.
+ */
 export function getDemoScenario(id: string): DemoScenario | undefined {
   return DEMO_SCENARIOS.find((s) => s.id === id);
 }

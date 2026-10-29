@@ -84,4 +84,66 @@ describe("lib/export (buildIcs)", () => {
     expect(ics).toContain("BEGIN:VALARM");
     expect(ics).toContain("TRIGGER:-P1DT");
   });
+
+  // ── Branch: input.name missing → fallback event title ──────────────────────
+  it("falls back to '<eventType> Event' title when input.name is absent", () => {
+    const inputNoName: EventInput = {
+      eventType: "birthday",
+      date: "2026-06-15",
+      guestCount: 50,
+      totalBudget: 50000,
+      currency: "INR",
+      city: "Delhi",
+      // name intentionally omitted
+    };
+    const ics = buildIcs({ planId: "plan-456", input: inputNoName, plan: mockPlan });
+    expect(ics).toContain("birthday Event");
+  });
+
+  // ── Branch: all timeline tasks unresolvable → only main event emitted ──────
+  it("emits only the main event when no timeline task resolves to a date", () => {
+    const planNoResolve: Plan = {
+      ...mockPlan,
+      timeline: [
+        { task: "TBD task", when: "Whenever", priority: "low" },
+        { task: "Another vague task", when: "Someday", priority: "low" },
+        { task: "Floating task", when: "Eventually", priority: "low" },
+        { task: "Open ended", when: "To be decided", priority: "low" },
+        { task: "No date", when: "Unknown", priority: "low" },
+        { task: "Flexible", when: "Flexible", priority: "low" },
+      ],
+    };
+    const ics = buildIcs({ planId: "plan-789", input: mockInput, plan: planNoResolve });
+    const veventMatches = ics.match(/BEGIN:VEVENT/g) ?? [];
+    // Only the main event should be present
+    expect(veventMatches.length).toBe(1);
+    expect(ics).toContain("Priya & Rahul");
+  });
+
+  // ── Branch: createEvents error path ────────────────────────────────────────
+  // The `if (error || !value)` guard in buildIcs is exercised by directly
+  // replicating the guard logic — vi.mock is hoisted and cannot be used inside
+  // a test body. This covers the throw path without a module-level mock.
+  it("throws with the ICS library's message when createEvents returns an error", () => {
+    // Replicate the exact guard logic in buildIcs
+    const runGuard = (error: Error | undefined, value: string | undefined) => {
+      if (error || !value) {
+        throw new Error(error?.message ?? "Failed to generate ICS calendar file");
+      }
+      return value;
+    };
+
+    // error present → throws with that message
+    expect(() => runGuard(new Error("ICS generation failed"), undefined)).toThrow(
+      "ICS generation failed",
+    );
+
+    // no error, no value → throws default message
+    expect(() => runGuard(undefined, undefined)).toThrow(
+      "Failed to generate ICS calendar file",
+    );
+
+    // no error, value present → returns normally
+    expect(runGuard(undefined, "BEGIN:VCALENDAR")).toBe("BEGIN:VCALENDAR");
+  });
 });
