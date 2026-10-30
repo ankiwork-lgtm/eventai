@@ -16,7 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Event Planning Assistant",
+  title: {
+    default: "Event Planning Assistant",
+    template: "%s | EventAI",
+  },
   description: "AI-powered assistant for planning events",
 };
 

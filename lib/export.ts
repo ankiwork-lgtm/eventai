@@ -6,6 +6,7 @@
 
 import { createEvents, type EventAttributes } from "ics";
 import { parseLocalDate, resolveTaskDate } from "@/lib/dates";
+import { getEventDisplayName } from "@/lib/eventName";
 import { taskKey } from "@/lib/progress";
 import type { EventInput, Plan } from "@/lib/schema";
 
@@ -21,7 +22,7 @@ export type BuildIcsParams = {
  * Tasks that cannot be resolved to a calendar date are omitted.
  */
 export function buildIcs({ planId, input, plan }: BuildIcsParams): string {
-  const eventName = input.name?.trim() || `${input.eventType} Event`;
+  const eventName = getEventDisplayName(input, `${input.eventType} Event`);
   const eventDateObj = parseLocalDate(input.date);
   const events: EventAttributes[] = [];
 

@@ -11,9 +11,6 @@ import {
   DEFAULT_LLM_MODEL,
   getModel,
   MAX_OUTPUT_TOKENS,
-  MAX_OUTPUT_TOKENS_EMAIL,
-  MAX_OUTPUT_TOKENS_PLAN,
-  MAX_OUTPUT_TOKENS_REFINE,
   MAX_RETRIES,
 } from "@/lib/ai";
 
@@ -159,9 +156,6 @@ describe("lib/ai constants and helpers", () => {
     expect(MAX_OUTPUT_TOKENS.plan).toBe(8000);
     expect(MAX_OUTPUT_TOKENS.refine).toBe(4500);
     expect(MAX_OUTPUT_TOKENS.email).toBe(600);
-    expect(MAX_OUTPUT_TOKENS_PLAN).toBe(8000);
-    expect(MAX_OUTPUT_TOKENS_REFINE).toBe(4500);
-    expect(MAX_OUTPUT_TOKENS_EMAIL).toBe(600);
   });
 
   it("getModel returns language model instance", () => {

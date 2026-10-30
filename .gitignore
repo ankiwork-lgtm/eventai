@@ -49,3 +49,7 @@ lh-home.html
 run.out
 stream-out.txt
 lh-ver.txt
+
+# playwright
+test-results/
+playwright-report/

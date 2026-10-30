@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSyncExternalStore } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -22,114 +22,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { ChipGroup } from "@/components/intake/ChipGroup";
+import { FORM_TEMPLATES } from "@/components/intake/templates";
 import { IntakeFormSchema, getTomorrowString } from "@/lib/form-schema";
-import { EVENT_TYPES, type EventInput, type EventInputForm } from "@/lib/schema";
+import {
+  EVENT_TYPES,
+  SUPPORTED_CURRENCIES,
+  type EventInput,
+  type EventInputForm,
+  type EventInputRequest,
+  type EventType,
+} from "@/lib/schema";
 import { DemoScenarios } from "@/components/DemoScenarios";
+import { GUEST_MAX } from "@/lib/constants";
 import type { DemoScenario } from "@/lib/demo";
 
-// ─── Per-type template config ────────────────────────────────────────────────
-
-export type FormTemplate = {
-  traditionsLabel: string;
-  traditionsPlaceholder: string;
-  traditionsChips: string[];
-  preferencesLabel: string;
-  preferencesPlaceholder: string;
-  preferencesChips: string[];
-};
-
-export const FORM_TEMPLATES: Record<(typeof EVENT_TYPES)[number], FormTemplate> = {
-  wedding: {
-    traditionsLabel: "Traditions / ceremonies",
-    traditionsPlaceholder:
-      "e.g. Maharashtrian wedding, 2-day ceremony, mehendi, sangeet…",
-    traditionsChips: [
-      "Mehendi ceremony",
-      "Sangeet night",
-      "Haldi ritual",
-      "Pheras / vows",
-      "Multi-day event",
-    ],
-    preferencesLabel: "Preferences & requirements",
-    preferencesPlaceholder:
-      "e.g. vegetarian menu, outdoor venue, live music, 500 guests…",
-    preferencesChips: [
-      "Vegetarian only",
-      "Outdoor venue",
-      "Live music",
-      "Destination wedding",
-      "Kid-friendly",
-    ],
-  },
-  birthday: {
-    traditionsLabel: "Age & interests",
-    traditionsPlaceholder:
-      "e.g. turning 7, loves superheroes, adult milestone birthday…",
-    traditionsChips: [
-      "Kid's party",
-      "Teen party",
-      "Milestone (18/21/30/50)",
-      "Surprise party",
-      "Superhero theme",
-    ],
-    preferencesLabel: "Preferences & requirements",
-    preferencesPlaceholder:
-      "e.g. return gifts, cake flavour, entertainment, outdoor…",
-    preferencesChips: [
-      "Return gifts",
-      "Outdoor setting",
-      "DJ / live music",
-      "Photo booth",
-      "Activities for kids",
-    ],
-  },
-  community: {
-    traditionsLabel: "Expected attendance & permits",
-    traditionsPlaceholder:
-      "e.g. neighbourhood Diwali mela, 300 attendees, requires park permit…",
-    traditionsChips: [
-      "Park / public space",
-      "Permit required",
-      "Volunteer-run",
-      "Sponsorship needed",
-      "Outdoor stalls",
-    ],
-    preferencesLabel: "Preferences & requirements",
-    preferencesPlaceholder:
-      "e.g. accessibility, safety marshals, publicity plan, low budget…",
-    preferencesChips: [
-      "Accessibility provisions",
-      "Safety marshals",
-      "Publicity / flyers",
-      "Stall vendors",
-      "Cultural programme",
-    ],
-  },
-};
-
-// ─── Chip helper ─────────────────────────────────────────────────────────────
-
-function Chip({
-  label,
-  onAppend,
-}: {
-  label: string;
-  onAppend: (text: string) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onAppend(label)}
-      aria-label={`Add ${label}`}
-      className="inline-flex min-h-[40px] cursor-pointer items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-    >
-      <Badge variant="outline" className="cursor-pointer pointer-events-none" aria-hidden="true">
-        + {label}
-      </Badge>
-    </button>
-  );
-}
+// Re-exported so existing imports from "@/components/IntakeForm" keep working.
+export { FORM_TEMPLATES, type FormTemplate } from "@/components/intake/templates";
 
 // ─── Component props ──────────────────────────────────────────────────────────
 
@@ -142,6 +51,9 @@ export type IntakeFormProps = {
 
 const subscribeNoop = () => () => {};
 
+/** Numeric inputs start empty; the zod resolver coerces them to numbers on submit. */
+const EMPTY_NUMBER: number | "" = "";
+
 export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
   // Tomorrow in the browser's local time; undefined on the server so SSR and
   // hydration markup match (no `min` attribute until the client takes over).
@@ -151,14 +63,14 @@ export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
     () => undefined,
   );
 
-  const form = useForm<EventInputForm, unknown, EventInput>({
+  const form = useForm<EventInputForm, unknown, EventInputRequest>({
     resolver: zodResolver(IntakeFormSchema),
     defaultValues: {
       eventType: "wedding",
       eventName: "",
       date: "",
-      guestCount: "" as unknown as number,
-      totalBudget: "" as unknown as number,
+      guestCount: EMPTY_NUMBER,
+      totalBudget: EMPTY_NUMBER,
       currency: "INR",
       city: "",
       theme: "",
@@ -171,7 +83,7 @@ export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
   const eventType = useWatch({
     control: form.control,
     name: "eventType",
-  }) as (typeof EVENT_TYPES)[number];
+  }) as EventType;
   const template = FORM_TEMPLATES[eventType] ?? FORM_TEMPLATES.wedding;
 
   function appendToField(
@@ -316,7 +228,7 @@ export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
                   id="guestCount"
                   type="number"
                   min={1}
-                  max={10000}
+                  max={GUEST_MAX}
                   placeholder="e.g. 150"
                   {...field}
                   value={field.value as string | number | undefined}
@@ -370,7 +282,7 @@ export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
                     <SelectValue placeholder="INR" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(["INR", "USD", "EUR", "GBP", "AED"] as const).map((c) => (
+                    {SUPPORTED_CURRENCIES.map((c) => (
                       <SelectItem key={c} value={c}>
                         {c}
                       </SelectItem>
@@ -436,15 +348,10 @@ export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
                   {...field}
                 />
               </FormControl>
-              <div className="flex flex-wrap gap-1 pt-1">
-                {template.traditionsChips.map((chip) => (
-                  <Chip
-                    key={chip}
-                    label={chip}
-                    onAppend={(t) => appendToField("culturalTraditions", t)}
-                  />
-                ))}
-              </div>
+              <ChipGroup
+                chips={template.traditionsChips}
+                onAppend={(t) => appendToField("culturalTraditions", t)}
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -465,15 +372,10 @@ export function IntakeForm({ onSubmit, onInstantGenerate }: IntakeFormProps) {
                   {...field}
                 />
               </FormControl>
-              <div className="flex flex-wrap gap-1 pt-1">
-                {template.preferencesChips.map((chip) => (
-                  <Chip
-                    key={chip}
-                    label={chip}
-                    onAppend={(t) => appendToField("preferences", t)}
-                  />
-                ))}
-              </div>
+              <ChipGroup
+                chips={template.preferencesChips}
+                onAppend={(t) => appendToField("preferences", t)}
+              />
               <FormMessage />
             </FormItem>
           )}

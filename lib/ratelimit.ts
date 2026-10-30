@@ -1,7 +1,7 @@
 /**
  * lib/ratelimit.ts — in-memory sliding-window rate limiter (P5-T04)
  *
- * Keyed by `${ip}::${route}`. Each bucket stores the timestamps of recent
+ * Keyed by route, then ip (nested maps). Each bucket stores the timestamps of recent
  * requests in a sliding window. On every check, timestamps older than
  * `windowMs` are pruned, then the count is compared against `limit`.
  *
@@ -39,30 +39,31 @@ export const ROUTE_LIMITS: Record<string, RateLimitConfig> = {
 /** Bucket: an array of request timestamps in ascending order. */
 type Bucket = number[];
 
-/** Global store: key → timestamps */
-const store = new Map<string, Bucket>();
+/**
+ * Global store: route ? ip ? timestamps.
+ * Nested maps avoid composite string keys, so IPv6 addresses containing "::"
+ * can never corrupt route recovery. The shared "unknown" IP is just another ip key.
+ */
+const store = new Map<string, Map<string, Bucket>>();
 
 /**
- * Prune all entries whose window has fully expired (all timestamps are stale).
+ * Prune all buckets whose window has fully expired.
  * Called after each check so the map cannot grow unboundedly.
  */
 function pruneStore(now: number): void {
-  for (const [key, bucket] of store) {
-    // Find the freshest config for this key's route
-    const route = key.split("::")[1] ?? "";
+  for (const [route, ips] of store) {
     const cfg = ROUTE_LIMITS[route];
     if (!cfg) {
-      store.delete(key);
+      store.delete(route);
       continue;
     }
     const cutoff = now - cfg.windowMs;
-    // Remove timestamps older than the window
-    const fresh = bucket.filter((t) => t > cutoff);
-    if (fresh.length === 0) {
-      store.delete(key);
-    } else {
-      store.set(key, fresh);
+    for (const [ip, bucket] of ips) {
+      const fresh = bucket.filter((t) => t > cutoff);
+      if (fresh.length === 0) ips.delete(ip);
+      else ips.set(ip, fresh);
     }
+    if (ips.size === 0) store.delete(route);
   }
 }
 
@@ -78,39 +79,36 @@ export function checkRateLimit(
   route: string,
   clock: ClockFn = Date.now,
 ): RateLimitResult {
-  const cfg = ROUTE_LIMITS[route];
+  const cfg = Object.hasOwn(ROUTE_LIMITS, route) ? ROUTE_LIMITS[route] : undefined;
   if (!cfg) {
-    // Unknown route — do not limit
+    // Unknown route - do not limit
     return { limited: false, retryAfterSeconds: 0 };
   }
 
   const now = clock();
   const cutoff = now - cfg.windowMs;
-  const key = `${ip}::${route}`;
 
-  // Get or create bucket, filter to current window
-  const raw = store.get(key) ?? [];
-  const bucket = raw.filter((t) => t > cutoff);
+  let ips = store.get(route);
+  if (!ips) {
+    ips = new Map();
+    store.set(route, ips);
+  }
+  const bucket = (ips.get(ip) ?? []).filter((t) => t > cutoff);
 
   if (bucket.length >= cfg.limit) {
-    // Oldest timestamp in the window tells us when the next slot opens
-    const oldest = bucket[0]!;
-    const retryAfterMs = oldest + cfg.windowMs - now;
+    const retryAfterMs = bucket[0]! + cfg.windowMs - now;
     const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
-
     // Persist pruned bucket (do NOT record this request)
-    store.set(key, bucket);
+    ips.set(ip, bucket);
     pruneStore(now);
     return { limited: true, retryAfterSeconds };
   }
 
-  // Record this request
   bucket.push(now);
-  store.set(key, bucket);
+  ips.set(ip, bucket);
   pruneStore(now);
   return { limited: false, retryAfterSeconds: 0 };
 }
-
 /**
  * Reset the entire store.
  * Intended for use in tests only — clears all buckets so test suites

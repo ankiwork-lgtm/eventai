@@ -2,14 +2,23 @@
  * GET /api/moodboard (P4-T09, TDD §14.3)
  *
  * Proxy to Unsplash Search API for event visual inspiration.
- * Returns up to 6 curated images with photographer attribution.
+ * Returns up to MOODBOARD_IMAGE_COUNT curated images with photographer attribution.
  * Silently returns empty array if UNSPLASH_ACCESS_KEY is absent or if the query fails.
  */
 
-import { getClientIp } from "@/lib/api";
-import { checkRateLimit } from "@/lib/ratelimit";
+import { enforceRateLimit } from "@/lib/api";
+import { UnsplashResponseSchema, UnsplashResultSchema } from "@/lib/schema";
+import {
+  MOODBOARD_CACHE_TTL_S,
+  MOODBOARD_IMAGE_COUNT,
+  MOODBOARD_QUERY_MAX,
+} from "@/lib/constants";
 
+// Must stay a literal (Next needs it statically analyzable). Equals MOODBOARD_MAX_DURATION_S
+// in lib/constants.ts; tests/constants.test.ts enforces this.
 export const maxDuration = 30;
+
+const CACHE_CONTROL = `s-maxage=${MOODBOARD_CACHE_TTL_S}, stale-while-revalidate=${MOODBOARD_CACHE_TTL_S}`;
 
 /** Returns true only when the string is a valid https: URL (S4). */
 function isValidHttpsUrl(urlString?: string): boolean {
@@ -23,58 +32,57 @@ function isValidHttpsUrl(urlString?: string): boolean {
 }
 
 export async function GET(req: Request): Promise<Response> {
-  const rl = checkRateLimit(getClientIp(req), "/api/moodboard");
-  if (rl.limited) {
-    return Response.json([], {
-      status: 429,
-      headers: {
-        "Retry-After": String(rl.retryAfterSeconds),
-        "Cache-Control": "no-store",
-      },
-    });
+  // 429 returns the shared error envelope plus Retry-After (same as other routes).
+  // The success body remains a bare array. This is a GET with no request body,
+  // so there is no body-read/parse step to align.
+  const limited = enforceRateLimit(req, "/api/moodboard");
+  if (limited) {
+    limited.headers.set("Cache-Control", "no-store");
+    return limited;
   }
 
   const url = new URL(req.url);
-  const q = (url.searchParams.get("q") ?? "").slice(0, 100).trim();
+  const q = (url.searchParams.get("q") ?? "").slice(0, MOODBOARD_QUERY_MAX).trim();
 
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!accessKey || !q) {
     return Response.json([], {
       status: 200,
-      headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=86400" },
+      headers: { "Cache-Control": CACHE_CONTROL },
     });
   }
 
   try {
     const unsplashUrl = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
       q,
-    )}&per_page=6&orientation=landscape`;
+    )}&per_page=${MOODBOARD_IMAGE_COUNT}&orientation=landscape`;
 
     const res = await fetch(unsplashUrl, {
       headers: {
         Authorization: `Client-ID ${accessKey}`,
         "Accept-Version": "v1",
       },
-      next: { revalidate: 86400 },
+      next: { revalidate: MOODBOARD_CACHE_TTL_S },
     });
 
+    // INTENTIONAL: upstream failures (non-2xx, network error, bad JSON) return
+    // 200 with an empty array rather than an error envelope. The mood board is
+    // decorative and the client hides the section silently when it is empty.
     if (!res.ok) {
       return Response.json([], { status: 200 });
     }
 
-    const data = await res.json();
-    const results = Array.isArray(data.results) ? data.results : [];
-
-    type UnsplashResult = {
-      urls?: { regular?: string; small?: string };
-      alt_description?: string;
-      description?: string;
-      user?: { name?: string; links?: { html?: string } };
-    };
+    // Validate the upstream payload; malformed results are skipped individually.
+    const payload = UnsplashResponseSchema.safeParse(await res.json());
+    const results = payload.success ? payload.data.results : [];
 
     const images = results
-      .slice(0, 6)
-      .map((img: UnsplashResult) => ({
+      .slice(0, MOODBOARD_IMAGE_COUNT)
+      .flatMap((raw) => {
+        const parsed = UnsplashResultSchema.safeParse(raw);
+        return parsed.success ? [parsed.data] : [];
+      })
+      .map((img) => ({
         url: img.urls?.small || img.urls?.regular || "",
         alt: img.alt_description || img.description || `${q} decor`,
         credit: img.user?.name || "Unsplash Photographer",
@@ -82,15 +90,16 @@ export async function GET(req: Request): Promise<Response> {
           ? `${img.user.links.html}?utm_source=eventai&utm_medium=referral`
           : "https://unsplash.com?utm_source=eventai&utm_medium=referral",
       }))
-      .filter((img: { url: string; link: string }) => isValidHttpsUrl(img.url) && isValidHttpsUrl(img.link));
+      .filter((img) => isValidHttpsUrl(img.url) && isValidHttpsUrl(img.link));
 
     return Response.json(images, {
       status: 200,
       headers: {
-        "Cache-Control": "s-maxage=86400, stale-while-revalidate=86400",
+        "Cache-Control": CACHE_CONTROL,
       },
     });
   } catch {
+    // Intentional empty-array fallback; see note above.
     return Response.json([], { status: 200 });
   }
 }

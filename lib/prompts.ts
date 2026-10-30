@@ -1,4 +1,5 @@
 import { daysUntil } from "@/lib/dates";
+import { getEventDisplayName } from "@/lib/eventName";
 import type { EventInput, EventType, Plan } from "@/lib/schema";
 
 export const BASE_PROMPT = `You are an expert event planner. Tailor plans to the culture, location, currency, guest count, and budget provided. Be specific and realistic about local costs.`;
@@ -138,7 +139,7 @@ export function buildEmailPrompt({
   const lines = [
     `Event Details: ${JSON.stringify({
       eventType: eventInput.eventType,
-      eventName: eventInput.name ?? (eventInput as { eventName?: string }).eventName,
+      eventName: getEventDisplayName(eventInput, "") || undefined,
       date: eventInput.date,
       city: eventInput.city,
       guestCount: eventInput.guestCount,

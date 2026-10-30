@@ -43,12 +43,13 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, streamText, Output, type LanguageModel } from "ai";
 import { type z } from "zod";
 import { PlanSchema, type Plan } from "@/lib/schema";
+import { MAX_RETRIES } from "@/lib/constants";
 
 /** Default fallback LLM model name */
 export const DEFAULT_LLM_MODEL = "claude-sonnet-5-5";
 
-/** Default maximum retry attempts for LLM calls */
-export const MAX_RETRIES = 1;
+// Re-exported for existing importers (tests/api.test.ts).
+export { MAX_RETRIES };
 
 /** Max output token budgets per call type */
 export const MAX_OUTPUT_TOKENS = {
@@ -56,10 +57,6 @@ export const MAX_OUTPUT_TOKENS = {
   refine: 4500,
   email: 600,
 } as const;
-
-export const MAX_OUTPUT_TOKENS_PLAN = MAX_OUTPUT_TOKENS.plan;
-export const MAX_OUTPUT_TOKENS_REFINE = MAX_OUTPUT_TOKENS.refine;
-export const MAX_OUTPUT_TOKENS_EMAIL = MAX_OUTPUT_TOKENS.email;
 
 /**
  * Returns a LanguageModel instance.
@@ -89,7 +86,11 @@ export type LlmUsage = {
   outputTokens: number | undefined;
 };
 
-/** Payload passed to `streamPlan`'s onFinish (subset of the SDK event we need). */
+/**
+ * Payload passed to `streamPlan`'s onFinish (subset of the SDK event we need).
+ * A failed or aborted stream is signalled by `object === undefined`; `streamPlan`
+ * itself never sets `error` (the SDK's finish event carries none).
+ */
 export type StreamPlanFinish = {
   usage: LlmUsage;
   object: Plan | undefined;
@@ -101,8 +102,6 @@ export type StreamPlanOptions = {
   system: string;
   schema?: z.ZodType<Plan>;
   model?: LanguageModel;
-  /** Accepted in the signature for call-site compatibility; ignored — not supported by the gateway models. */
-  temperature?: number;
   maxRetries?: number;
   maxOutputTokens?: number;
   abortSignal?: AbortSignal;
@@ -136,7 +135,6 @@ export function streamPlan(options: StreamPlanOptions) {
               outputTokens: usage.outputTokens,
             },
             object: output as Plan | undefined,
-            error: undefined,
           })
       : undefined,
   });
@@ -147,10 +145,9 @@ export type GenerateStructuredOptions<T> = {
   prompt: string;
   system?: string;
   model?: LanguageModel;
-  /** Accepted in the signature for call-site compatibility; ignored — not supported by the gateway models. */
-  temperature?: number;
   maxRetries?: number;
-  maxOutputTokens?: number;
+  /** Required: each caller must pick its own budget (see `MAX_OUTPUT_TOKENS`). */
+  maxOutputTokens: number;
   abortSignal?: AbortSignal;
 };
 
@@ -169,7 +166,7 @@ export async function generateStructured<T>(options: GenerateStructuredOptions<T
     system: options.system,
     prompt: options.prompt,
     maxRetries: options.maxRetries ?? MAX_RETRIES,
-    maxOutputTokens: options.maxOutputTokens ?? MAX_OUTPUT_TOKENS.plan,
+    maxOutputTokens: options.maxOutputTokens,
     abortSignal: options.abortSignal,
   });
 

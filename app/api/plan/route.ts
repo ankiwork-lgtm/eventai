@@ -12,38 +12,23 @@
  *   `onError` callback on the client (DD-8).
  */
 
-import { errorResponse, parseBody, getClientIp } from "@/lib/api";
-import type { ParseBodyResult } from "@/lib/api";
+import { createLlmLogOnce, enforceRateLimit, mapError, readJsonBody } from "@/lib/api";
 import { streamPlan } from "@/lib/ai";
 import { EventInputSchema } from "@/lib/schema";
-import type { EventInput } from "@/lib/schema";
 import { buildPlanPrompt, systemPromptFor } from "@/lib/prompts";
-import { checkRateLimit } from "@/lib/ratelimit";
-import { logLlmCall } from "@/lib/observability";
-import { classifyLlmError } from "@/lib/llm-errors";
+import { MAX_RETRIES } from "@/lib/constants";
 
+// Must stay a literal (Next needs it statically analyzable). Equals MAX_DURATION_S
+// in lib/constants.ts; tests/constants.test.ts enforces this.
 export const maxDuration = 60;
 
 export async function POST(req: Request): Promise<Response> {
   // ── Rate limit (P5-T04) ───────────────────────────────────────────────────
-  const rl = checkRateLimit(getClientIp(req), "/api/plan");
-  if (rl.limited) {
-    return errorResponse(
-      "RATE_LIMITED",
-      "Too many requests. Try again shortly.",
-      429,
-      {},
-      { "Retry-After": String(rl.retryAfterSeconds) },
-    );
-  }
+  const limited = enforceRateLimit(req, "/api/plan");
+  if (limited) return limited;
 
   // ── Parse + validate request body ────────────────────────────────────────
-  let parsed: ParseBodyResult<EventInput>;
-  try {
-    parsed = await parseBody(req, EventInputSchema);
-  } catch {
-    return errorResponse("INTERNAL", "Unexpected error reading request.", 500);
-  }
+  const parsed = await readJsonBody(req, EventInputSchema);
 
   if (!parsed.ok) {
     return parsed.response;
@@ -52,26 +37,13 @@ export async function POST(req: Request): Promise<Response> {
   const input = parsed.data;
 
   // ── Stream plan from LLM ──────────────────────────────────────────────────
-  const startedAt = Date.now();
-  let logged = false;
-  const logOnce = (ok: boolean, usage?: { inputTokens?: number; outputTokens?: number }) => {
-    if (logged) return;
-    logged = true;
-    logLlmCall({
-      route: "plan",
-      eventType: input.eventType,
-      latencyMs: Date.now() - startedAt,
-      usage,
-      ok,
-    });
-  };
+  const logOnce = createLlmLogOnce("plan", input.eventType);
 
   try {
     const result = streamPlan({
       system: systemPromptFor(input.eventType),
       prompt: buildPlanPrompt(input),
-      temperature: 0.7,
-      maxRetries: 1,
+      maxRetries: MAX_RETRIES,
       // Observability (TDD §13): one structured line after the stream finishes.
       // Only enumerated, non-sensitive fields — never free text, inputs, or keys.
       onFinish: ({ usage, object, error }) => {
@@ -87,18 +59,6 @@ export async function POST(req: Request): Promise<Response> {
 
     // Provider / setup errors raised before the first byte can be caught here.
     // Do NOT log raw provider errors — they may contain path or key details.
-    if (classifyLlmError(err) === "provider") {
-      return errorResponse(
-        "LLM_ERROR",
-        "The AI provider returned an error. Please try again.",
-        502,
-      );
-    }
-
-    return errorResponse(
-      "INTERNAL",
-      "An unexpected server error occurred.",
-      500,
-    );
+    return mapError(err);
   }
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * usePlanStore (P3-T03, TDD §7.3, §7.4, DD-12, DD-13)
@@ -7,8 +7,11 @@
  *  - Reads localStorage in useEffect only (never during SSR render).
  *  - Writes are debounced 300 ms; flushed immediately on beforeunload /
  *    visibilitychange:hidden so a quick hard-refresh never loses a tick.
- *  - update(patch) deep-merges and bumps updatedAt.
- *  - toggle(kind, key) calls toggleProgress and schedules a flush.
+ *  - update(patch) merges and bumps updatedAt.
+ *  - toggle(kind, key) calls toggleProgress and schedules a save.
+ *  - Updaters are pure: the next record is computed from a ref mirroring the
+ *    latest record; the ref write and timer scheduling live in scheduleSave.
+ *  - On unmount a pending save is flushed; the delete flow cancels it.
  *  - Storage-degraded fires a one-time sonner toast.
  */
 
@@ -16,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { localRepo } from "@/lib/storage";
 import { toggleProgress } from "@/lib/progress";
+import { SAVE_DEBOUNCE_MS } from "@/lib/constants";
 import type { StoredPlan, ProgressState } from "@/lib/types";
 
 export type PlanStoreStatus = "loading" | "ready" | "missing";
@@ -25,13 +29,15 @@ export type UsePlanStoreReturn = {
   record: StoredPlan | null;
   update: (patch: Partial<StoredPlan>) => void;
   toggle: (kind: keyof ProgressState, key: string) => void;
+  /** Cancel any pending save and stop flushing (call before deleting). */
+  cancelPendingSave: () => void;
 };
 
 export function usePlanStore(id: string): UsePlanStoreReturn {
   const [status, setStatus] = useState<PlanStoreStatus>("loading");
   const [record, setRecord] = useState<StoredPlan | null>(null);
 
-  // Keep a ref to the latest record for flush callbacks (avoids stale closure)
+  // Mirrors the latest record; the source for computing the next record
   const recordRef = useRef<StoredPlan | null>(null);
 
   // Debounce timer ref
@@ -52,15 +58,11 @@ export function usePlanStore(id: string): UsePlanStoreReturn {
     }
   }, []);
 
-  // Sync recordRef after each render so flush callbacks always see the latest record
-  useEffect(() => {
-    recordRef.current = record;
-  });
-
   // ── Load once on mount ────────────────────────────────────────────────────
   useEffect(() => {
     localRepo.inspect(id).then((result) => {
       if (result.state === "ok") {
+        recordRef.current = result.record;
         setRecord(result.record);
         setStatus("ready");
       } else {
@@ -96,48 +98,68 @@ export function usePlanStore(id: string): UsePlanStoreReturn {
     };
   }, [flush]);
 
+  // ── scheduleSave: single debounce routine (outside any updater) ──────────
+  const scheduleSave = useCallback((next: StoredPlan) => {
+    recordRef.current = next;
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      debounceTimer.current = null;
+      void localRepo.save(next);
+    }, SAVE_DEBOUNCE_MS);
+  }, []);
+
+  // ── Unmount: flush a pending save if the record still exists ─────────────
+  useEffect(() => {
+    return () => {
+      if (!debounceTimer.current) return;
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+      const current = recordRef.current;
+      if (current) void localRepo.save(current);
+    };
+  }, []);
+
   // ── update(patch) ─────────────────────────────────────────────────────────
-  const update = useCallback((patch: Partial<StoredPlan>) => {
-    setRecord((prev) => {
-      if (!prev) return prev;
+  const update = useCallback(
+    (patch: Partial<StoredPlan>) => {
+      const prev = recordRef.current;
+      if (!prev) return;
       const next: StoredPlan = {
         ...prev,
         ...patch,
         updatedAt: new Date().toISOString(),
       };
-      recordRef.current = next;
-      // Debounced write
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        void localRepo.save(next);
-        debounceTimer.current = null;
-      }, 300);
-      return next;
-    });
-  }, []);
+      setRecord(next);
+      scheduleSave(next);
+    },
+    [scheduleSave],
+  );
 
   // ── toggle(kind, key) ─────────────────────────────────────────────────────
   const toggle = useCallback(
     (kind: keyof ProgressState, key: string) => {
-      setRecord((prev) => {
-        if (!prev) return prev;
-        const next: StoredPlan = {
-          ...prev,
-          progress: toggleProgress(prev.progress, kind, key),
-          updatedAt: new Date().toISOString(),
-        };
-        recordRef.current = next;
-        // Debounced write
-        if (debounceTimer.current) clearTimeout(debounceTimer.current);
-        debounceTimer.current = setTimeout(() => {
-          void localRepo.save(next);
-          debounceTimer.current = null;
-        }, 300);
-        return next;
-      });
+      const prev = recordRef.current;
+      if (!prev) return;
+      const next: StoredPlan = {
+        ...prev,
+        progress: toggleProgress(prev.progress, kind, key),
+        updatedAt: new Date().toISOString(),
+      };
+      setRecord(next);
+      scheduleSave(next);
     },
-    [],
+    [scheduleSave],
   );
 
-  return { status, record, update, toggle };
+  // ── cancelPendingSave: used by the delete flow ────────────────────────────
+  const cancelPendingSave = useCallback(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+    // Drop the mirror so no later flush resurrects a deleted record
+    recordRef.current = null;
+  }, []);
+
+  return { status, record, update, toggle, cancelPendingSave };
 }

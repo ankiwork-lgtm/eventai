@@ -4,36 +4,29 @@
  * Uses generateStructured (non-streaming) to generate a customized vendor inquiry.
  */
 
-import { errorResponse, parseBody, getClientIp } from "@/lib/api";
+import {
+  enforceRateLimit,
+  errorResponse,
+  mapError,
+  readJsonBody,
+  withLlmLogging,
+} from "@/lib/api";
 import { generateStructured } from "@/lib/ai";
 import { MAX_OUTPUT_TOKENS } from "@/lib/ai";
 import { EmailRequestSchema, EmailSchema } from "@/lib/schema";
 import { buildEmailPrompt, EMAIL_SYSTEM_PROMPT } from "@/lib/prompts";
-import { checkRateLimit } from "@/lib/ratelimit";
-import { logLlmCall } from "@/lib/observability";
-import { classifyLlmError } from "@/lib/llm-errors";
+import { MAX_RETRIES } from "@/lib/constants";
 
+// Must stay a literal (Next needs it statically analyzable). Equals MAX_DURATION_S
+// in lib/constants.ts; tests/constants.test.ts enforces this.
 export const maxDuration = 60;
 
 export async function POST(req: Request): Promise<Response> {
   // ── Rate limit (P5-T04) ───────────────────────────────────────────────────
-  const rl = checkRateLimit(getClientIp(req), "/api/email");
-  if (rl.limited) {
-    return errorResponse(
-      "RATE_LIMITED",
-      "Too many requests. Try again shortly.",
-      429,
-      {},
-      { "Retry-After": String(rl.retryAfterSeconds) },
-    );
-  }
+  const limited = enforceRateLimit(req, "/api/email");
+  if (limited) return limited;
 
-  let parsed;
-  try {
-    parsed = await parseBody(req, EmailRequestSchema);
-  } catch {
-    return errorResponse("INTERNAL", "Unexpected error reading request.", 500);
-  }
+  const parsed = await readJsonBody(req, EmailRequestSchema);
 
   if (!parsed.ok) {
     return parsed.response;
@@ -61,48 +54,26 @@ export async function POST(req: Request): Promise<Response> {
       vendorType.toLowerCase().includes(b.category.toLowerCase()),
   );
 
-  const startedAt = Date.now();
-
   try {
-    const result = await generateStructured({
-      schema: EmailSchema,
-      system: EMAIL_SYSTEM_PROMPT,
-      prompt: buildEmailPrompt({
-        vendor: matchingVendor,
-        eventInput,
-        summary: plan.summary,
-        budgetLine: matchingBudget,
-      }),
-      temperature: 0.5,
-      maxOutputTokens: MAX_OUTPUT_TOKENS.email,
-      maxRetries: 1,
-    });
-
-    logLlmCall({
-      route: "email",
-      eventType: eventInput.eventType,
-      latencyMs: Date.now() - startedAt,
-      usage: result.usage,
-      ok: true,
-    });
+    const result = await withLlmLogging(
+      { route: "email", eventType: eventInput.eventType },
+      () =>
+        generateStructured({
+          schema: EmailSchema,
+          system: EMAIL_SYSTEM_PROMPT,
+          prompt: buildEmailPrompt({
+            vendor: matchingVendor,
+            eventInput,
+            summary: plan.summary,
+            budgetLine: matchingBudget,
+          }),
+          maxOutputTokens: MAX_OUTPUT_TOKENS.email,
+          maxRetries: MAX_RETRIES,
+        }),
+    );
 
     return Response.json(result.object, { status: 200 });
   } catch (err) {
-    logLlmCall({
-      route: "email",
-      eventType: eventInput.eventType,
-      latencyMs: Date.now() - startedAt,
-      ok: false,
-    });
-
-    if (classifyLlmError(err) === "provider") {
-      return errorResponse(
-        "LLM_ERROR",
-        "The AI provider returned an error. Please try again.",
-        502,
-      );
-    }
-
-    return errorResponse("INTERNAL", "An unexpected server error occurred.", 500);
+    return mapError(err);
   }
 }

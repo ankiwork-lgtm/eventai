@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { LandingClient } from "@/components/LandingClient";
+
+// title.template in the root layout does not apply to a page in the same
+// segment, so the full title is spelled out here.
+export const metadata: Metadata = {
+  title: "Plan your event | EventAI",
+};
 
 export default function Home() {
   return (

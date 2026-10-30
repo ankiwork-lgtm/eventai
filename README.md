@@ -90,6 +90,12 @@ Full pre-demo check: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`.
 
 Quality gate (what a CI job should run; there is no CI workflow in this repo yet): `pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm test:e2e`. `pnpm test` stays unit-only so it is fast and needs no browser.
 
+## Dependencies
+
+**Exact pinning.** Every entry in `dependencies` and `devDependencies` is pinned to an exact version (no `^` or `~`), so installs are reproducible and nothing upgrades silently. Upgrade deliberately, one package at a time, with `pnpm up <pkg>@<version>`, then run the full check above. Renovate or Dependabot can be added later to open those upgrade PRs; they are optional.
+
+**`shadcn` CLI.** Kept in `devDependencies` for two reasons: component scaffolding (`pnpm dlx shadcn add <component>`, configured by [`components.json`](components.json)), and because `app/globals.css` imports `shadcn/tailwind.css` at build time. No JavaScript from it ships in the app bundle.
+
 ## Demo scenarios
 
 Defined in [`lib/demo.ts`](lib/demo.ts). Dates are computed relative to today, so a demo never contains a past date. Each card on the landing page has two buttons:
@@ -189,9 +195,17 @@ LLM output token caps per call: `plan` 8 000, `refine` 4 500, `email` 600 (defin
 - **Bundle inspection** - after `pnpm build`, `grep -r sk-ant .next/static` must return nothing.
 - **Security headers** - `Content-Security-Policy` (CSP), `Strict-Transport-Security` (HSTS), `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`, and `Permissions-Policy` are applied to all routes via `next.config.ts`.
 
+### Content-Security-Policy and `'unsafe-inline'`
+
+The CSP is built by [`lib/security/csp.ts`](lib/security/csp.ts) and applied in `next.config.ts`. `script-src` is `'self' 'unsafe-inline' https://va.vercel-scripts.com`; `'unsafe-eval'` is added only when `NODE_ENV === "development"` (React needs it for debugging), never in production.
+
+`'unsafe-inline'` remains because the stricter nonce-based CSP needs a `proxy.ts` that generates a nonce per request, which forces every page to render dynamically. The Next.js CSP guide states Partial Prerendering is incompatible with nonce-based CSP, and this app uses `cacheComponents`. A nonce/proxy setup (or experimental SRI) is a possible future option if the static shell is given up.
+
 ## Known limitations
 
-- **In-memory rate limiter** - best-effort and per Vercel instance, not global (see above). Set an Anthropic spend limit.
+- **In-memory rate limiter** - best-effort and per instance, not global (see above). Each serverless instance keeps its own counters in memory and instances do not share state, so the effective limit grows with the number of warm instances, and counters reset on cold start. Set an Anthropic spend limit.
+- **Shared `"unknown"` rate-limit bucket** - the client IP comes from `getClientIp` in [`lib/api/envelope.ts`](lib/api/envelope.ts): first `x-real-ip`, `x-vercel-ip` or `cf-connecting-ip`, then the first `x-forwarded-for` entry (client-spoofable), then the literal `"unknown"`. Requests with none of these headers all share one `"unknown"` bucket per route in [`lib/ratelimit.ts`](lib/ratelimit.ts), so they throttle each other. On Vercel the platform sets these headers, so this mainly affects local runs and unusual proxies. Accepted as a trade-off: failing closed on a shared bucket is safer for LLM cost than skipping the limit.
+- **Free-text length caps** - request bodies are limited to 50 KB. Event input fields are capped (`eventName` 120, `city` 80, `theme` 200, `culturalTraditions` 500, `preferences` 500), as are the refine `message` (500), history message `content` (1 000) and `at` (40), `vendorType` (200) and the mood board query (100). Plan strings are not capped individually: they come from the LLM or stored records and are bounded by the 50 KB body limit, and capping them could reject valid output.
 - **Local-only storage** - plans, progress and chat live in the browser's `localStorage`. There are no accounts and no sync across devices or browsers; clearing site data deletes everything. Some private-browsing modes cannot persist data (the app shows a toast).
 - **AI-generated cultural content may be inaccurate** - rituals, customs, vendor types and cost estimates come from an LLM. Treat them as a starting point and verify with family, priests/officiants and real vendor quotes. Vendor suggestions are AI-generated, not verified businesses.
 - **No authentication** - anyone with the URL can use the app and spend LLM quota (mitigated only by the rate limiter and spend limit).

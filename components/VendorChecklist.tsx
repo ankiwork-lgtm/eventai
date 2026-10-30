@@ -10,6 +10,7 @@
  */
 
 import { useId } from "react";
+import type { DeepPartial } from "ai";
 import { MailIcon } from "lucide-react";
 import {
   Accordion,
@@ -110,7 +111,7 @@ export function VendorChecklist({
   isStreaming = false,
   onDraftEmail,
 }: {
-  vendors: readonly (Partial<Vendor> | null | undefined)[] | undefined;
+  vendors: readonly (Partial<Vendor> | DeepPartial<Vendor> | null | undefined)[] | undefined;
   progress?: ProgressState;
   onToggle?: (kind: keyof ProgressState, key: string) => void;
   isStreaming?: boolean;

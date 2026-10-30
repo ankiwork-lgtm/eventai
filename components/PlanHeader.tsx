@@ -13,10 +13,11 @@ import { CalendarIcon, MapPinIcon, UsersIcon, WalletIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportMenu } from "@/components/ExportMenu";
-import { useOptionalPlan } from "@/components/PlanContext";
+import { asCompletePlan, useOptionalPlan } from "@/components/PlanContext";
 import { daysUntil } from "@/lib/dates";
+import { getEventDisplayName } from "@/lib/eventName";
 import { countdownText, formatEventDate, formatMoney } from "@/lib/format";
-import type { EventInput, Plan } from "@/lib/schema";
+import type { EventInput } from "@/lib/schema";
 
 function titleCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -24,8 +25,7 @@ function titleCase(s: string): string {
 
 /** Title: explicit event name, else "{Type} in {City}". */
 function headerTitle(input: EventInput): string {
-  if (input.eventName && input.eventName.trim()) return input.eventName.trim();
-  return `${titleCase(input.eventType)} in ${input.city}`;
+  return getEventDisplayName(input, `${titleCase(input.eventType)} in ${input.city}`);
 }
 
 export function PlanHeader({
@@ -59,7 +59,7 @@ export function PlanHeader({
             <ExportMenu
               planId={planId ?? "plan"}
               input={input}
-              plan={planCtx.plan as Plan}
+              plan={asCompletePlan(planCtx.plan)}
               disabled={isStreaming}
             />
           )}

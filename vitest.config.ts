@@ -25,17 +25,35 @@ export default defineConfig({
     testTimeout: 30000,
     coverage: {
       provider: "v8",
-      include: ["lib/**/*.ts", "app/api/**/*.ts"],
-      exclude: ["lib/fixtures/**"],
+      include: [
+        "lib/**/*.ts",
+        "app/api/**/*.ts",
+        "hooks/**/*.ts",
+        "components/**/*.{ts,tsx}",
+      ],
+      exclude: [
+        "lib/fixtures/**",
+        // Pure shell: root layout only wires fonts/providers, nothing to unit test.
+        "app/layout.tsx",
+        // Vendored shadcn/ui primitives; covered upstream.
+        "components/ui/**",
+      ],
       reporter: ["text", "html"],
-      // Regression gate, set just below measured coverage (stmts 90.9 / branch 79.8 /
-      // funcs 97.2 / lines 91.9). Branches is the weak spot (lib/schema.ts timeline
-      // transform, lib/export.ts); raise toward 85 as those gain tests.
+      // Per-glob regression gates. The original lib/app-api gates are kept as-is;
+      // hooks and components get their own, set 1-2 points under measured values
+      // (hooks: stmts 90.0 / br 76.4 / fn 94.3 / lines 91.3;
+      //  components: stmts 86.4 / br 80.7 / fn 81.0 / lines 89.1).
+      // Raise as component/hook tests grow.
       thresholds: {
-        lines: 91,
-        functions: 95,
-        statements: 90,
-        branches: 78,
+        "lib/**": { lines: 91, functions: 95, statements: 90, branches: 78 },
+        "app/api/**": { lines: 91, functions: 95, statements: 90, branches: 78 },
+        "hooks/**": { lines: 89, functions: 92, statements: 88, branches: 74 },
+        "components/**": {
+          lines: 87,
+          functions: 79,
+          statements: 84,
+          branches: 78,
+        },
       },
     },
   },

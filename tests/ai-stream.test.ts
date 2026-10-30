@@ -252,6 +252,7 @@ describe("generateStructured", () => {
       prompt: "p",
       system: "s",
       maxRetries: 0,
+      maxOutputTokens: 1000,
       model: generateModel(JSON.stringify({ title: "Hi", count: 3 })),
     });
 
@@ -266,6 +267,7 @@ describe("generateStructured", () => {
         schema: Schema,
         prompt: "p",
         maxRetries: 0,
+        maxOutputTokens: 1000,
         model: generateModel(JSON.stringify({ title: 1 })),
       }),
     ).rejects.toThrow();

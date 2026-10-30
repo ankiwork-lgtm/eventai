@@ -10,18 +10,13 @@
 
 import React, { useEffect, useState } from "react";
 import { SparklesIcon } from "lucide-react";
-import type { EventInput } from "@/lib/schema";
+import { parseMoodBoardImages } from "@/lib/schema";
+import type { EventInput, MoodBoardImage } from "@/lib/schema";
 
-export type MoodBoardImage = {
-  url: string;
-  alt: string;
-  credit: string;
-  link: string;
-};
+export type { MoodBoardImage };
 
 export function MoodBoard({ input }: { input?: EventInput | null }) {
   const [images, setImages] = useState<MoodBoardImage[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!input) return;
@@ -36,16 +31,11 @@ export function MoodBoard({ input }: { input?: EventInput | null }) {
 
     fetch(`/api/moodboard?q=${encodeURIComponent(query)}`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: MoodBoardImage[]) => {
-        if (!cancelled && Array.isArray(data)) {
-          setImages(data);
-        }
+      .then((data: unknown) => {
+        if (!cancelled) setImages(parseMoodBoardImages(data));
       })
       .catch(() => {
         if (!cancelled) setImages([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
 
     return () => {
@@ -53,7 +43,7 @@ export function MoodBoard({ input }: { input?: EventInput | null }) {
     };
   }, [input]);
 
-  if (loading || images.length === 0) {
+  if (images.length === 0) {
     return null;
   }
 
@@ -65,9 +55,9 @@ export function MoodBoard({ input }: { input?: EventInput | null }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {images.map((img, i) => (
+        {images.map((img) => (
           <div
-            key={i}
+            key={img.url}
             className="group relative flex flex-col overflow-hidden rounded-lg border bg-muted"
           >
             <div className="relative aspect-4/3 w-full overflow-hidden bg-neutral-100">
@@ -80,13 +70,13 @@ export function MoodBoard({ input }: { input?: EventInput | null }) {
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </div>
-            <div className="p-1.5 text-[10px] text-muted-foreground truncate">
+            <div className="min-w-0 truncate px-2 py-2 text-xs text-muted-foreground">
               Photo by{" "}
               <a
                 href={img.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium underline hover:text-foreground"
+                className="inline-block max-w-full truncate align-bottom font-medium underline hover:text-foreground"
               >
                 {img.credit}
               </a>

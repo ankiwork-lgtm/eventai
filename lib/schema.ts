@@ -1,7 +1,12 @@
 import { z } from "zod";
+import { GUEST_MAX } from "@/lib/constants";
 
 export const EVENT_TYPES = ["wedding", "birthday", "community"] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
+
+/** Currencies accepted on requests and offered by the intake form (single source of truth). */
+export const SUPPORTED_CURRENCIES = ["INR", "USD", "EUR", "GBP", "AED"] as const;
+export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number];
 
 /**
  * Parses a strict YYYY-MM-DD string as a LOCAL calendar date.
@@ -37,10 +42,12 @@ const notInPast = (value: string): boolean => {
 export const EventInputBaseSchema = z.object({
   eventType: z.enum(EVENT_TYPES),
   eventName: z.string().max(120).optional(),
+  /** @deprecated Legacy field from older stored records. Read via getEventDisplayName; never written. */
   name: z.string().max(120).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
-  guestCount: z.coerce.number().int().positive().max(10000),
+  guestCount: z.coerce.number().int().positive().max(GUEST_MAX),
   totalBudget: z.coerce.number().positive(),
+  // Lenient on purpose: records stored before SUPPORTED_CURRENCIES existed must still load.
   currency: z.string().length(3).default("INR"),
   city: z.string().min(2).max(80),
   theme: z.string().max(200).optional(),
@@ -48,7 +55,15 @@ export const EventInputBaseSchema = z.object({
   preferences: z.string().max(500).optional(),
 });
 
-export const EventInputSchema = EventInputBaseSchema.extend({
+/**
+ * Same as EventInputBaseSchema but `currency` is restricted to SUPPORTED_CURRENCIES.
+ * Used for data that reaches the LLM prompt (request bodies); never for stored records.
+ */
+export const EventInputRequestBaseSchema = EventInputBaseSchema.extend({
+  currency: z.enum(SUPPORTED_CURRENCIES).default("INR"),
+});
+
+export const EventInputSchema = EventInputRequestBaseSchema.extend({
   date: EventInputBaseSchema.shape.date.refine(
     notInPast,
     "Date must be a valid date that is not in the past",
@@ -57,7 +72,14 @@ export const EventInputSchema = EventInputBaseSchema.extend({
 
 /** Event input as stored/read back: validated WITHOUT the "not in the past" refinement. */
 export type EventInputBase = z.infer<typeof EventInputBaseSchema>;
-export type EventInput = z.infer<typeof EventInputSchema>;
+/**
+ * Event input as consumed across the app. `currency` is a plain string here because
+ * stored records may carry codes outside SUPPORTED_CURRENCIES; request schemas
+ * narrow it at the boundary.
+ */
+export type EventInput = EventInputBase;
+/** Event input validated at the request boundary (currency restricted). */
+export type EventInputRequest = z.infer<typeof EventInputSchema>;
 export type EventInputForm = z.input<typeof EventInputSchema>;
 
 export const PlanSchema = z.object({
@@ -80,10 +102,19 @@ export const PlanSchema = z.object({
       z
         .object({
           when: z.string().optional().describe("human label, e.g. '6 months before'"),
-          monthsBefore: z.number().int().nonnegative().optional(),
+          // Models often emit null for the unused field; accept and normalise to undefined.
+          monthsBefore: z
+            .number()
+            .int()
+            .nonnegative()
+            .nullish()
+            .transform((v) => v ?? undefined)
+            .optional(),
           daysBefore: z
             .number()
             .int()
+            .nullish()
+            .transform((v) => v ?? undefined)
             .optional()
             .describe("negative = after the event; 0 = event day"),
           task: z.string(),
@@ -135,14 +166,17 @@ export type Plan = z.infer<typeof PlanSchema>;
 
 export const ChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string(),
-  at: z.string(),
+  // Request-only schema (stored chat records use the ChatMessage type, not this schema).
+  // Bounded: user messages are <= 500 chars and assistant messages are the
+  // changeSummary (<= 400 chars), so 1000 leaves headroom. `at` is an ISO timestamp.
+  content: z.string().max(1000),
+  at: z.string().max(40),
 });
 
 export const RefineRequestSchema = z.object({
   plan: PlanSchema,
   message: z.string().min(1).max(500),
-  eventInput: EventInputBaseSchema,
+  eventInput: EventInputRequestBaseSchema,
   // Accept up to 20 messages; the route trims to the last 6 before the LLM call.
   history: z.array(ChatMessageSchema).max(20).optional(),
 });
@@ -172,11 +206,68 @@ export const RefineResultSchema = z.object({
 });
 export type RefineResult = z.infer<typeof RefineResultSchema>;
 
+// ── Mood board schemas (network JSON guards) ─────────────────────────────────
+
+const httpsUrl = z
+  .string()
+  .refine((value) => {
+    try {
+      return new URL(value).protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "Must be an https URL");
+
+/** One mood board image as returned by /api/moodboard. Only https url/link accepted. */
+export const MoodBoardImageSchema = z.object({
+  url: httpsUrl,
+  alt: z.string(),
+  credit: z.string(),
+  link: httpsUrl,
+});
+export type MoodBoardImage = z.infer<typeof MoodBoardImageSchema>;
+
+/** Subset of the Unsplash search payload that the moodboard route reads. */
+export const UnsplashResponseSchema = z.object({
+  results: z.array(z.unknown()).catch([]),
+});
+
+/** One Unsplash result; all fields optional, wrong-typed fields are rejected per item. */
+export const UnsplashResultSchema = z.object({
+  urls: z
+    .object({ regular: z.string().optional(), small: z.string().optional() })
+    .optional(),
+  alt_description: z.string().nullish(),
+  description: z.string().nullish(),
+  user: z
+    .object({
+      name: z.string().nullish(),
+      links: z.object({ html: z.string().nullish() }).optional(),
+    })
+    .optional(),
+});
+export type UnsplashResult = z.infer<typeof UnsplashResultSchema>;
+
+/**
+ * Parses an unknown value as a list of mood board images, skipping malformed
+ * items individually. Never throws. Returns [] for a non-array.
+ */
+export function parseMoodBoardImages(data: unknown): MoodBoardImage[] {
+  if (!Array.isArray(data)) return [];
+  const out: MoodBoardImage[] = [];
+  for (const item of data) {
+    const parsed = MoodBoardImageSchema.safeParse(item);
+    if (parsed.success) out.push(parsed.data);
+  }
+  return out;
+}
+
 // ── Email API schemas (P4-T07) ───────────────────────────────────────────────
 
 export const EmailRequestSchema = z.object({
-  vendorType: z.string().min(1),
-  eventInput: EventInputBaseSchema,
+  // Request-only; vendor type labels are short ("Photographer"). 200 leaves room for LLM wording.
+  vendorType: z.string().min(1).max(200),
+  eventInput: EventInputRequestBaseSchema,
   plan: PlanSchema,
 });
 export type EmailRequest = z.infer<typeof EmailRequestSchema>;

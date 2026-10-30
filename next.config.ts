@@ -1,17 +1,13 @@
 import type { NextConfig } from "next";
+import { buildCsp } from "./lib/security/csp";
 
-const cspHeader = `
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' blob: data: https://images.unsplash.com https://*.unsplash.com;
-  font-src 'self' data:;
-  connect-src 'self' https://api.unsplash.com https://va.vercel-scripts.com https://vitals.vercel-insights.com;
-  frame-ancestors 'none';
-  form-action 'self';
-  base-uri 'self';
-  object-src 'none';
-`.replace(/\s{2,}/g, " ").trim();
+// CSP without nonces, so 'unsafe-inline' remains in script-src. Per the Next.js
+// CSP guide (docs/01-app/02-guides/content-security-policy.md), nonces require
+// dynamic rendering of every page, and Partial Prerendering (PPR) is
+// incompatible with nonce-based CSP because static shell scripts cannot get the
+// nonce. This app uses cacheComponents/PPR, so nonces are not an option today.
+// 'unsafe-eval' is added only in development (see lib/security/csp.ts).
+const cspHeader = buildCsp();
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: cspHeader },

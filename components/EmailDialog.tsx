@@ -7,7 +7,7 @@
  * copying to clipboard, and opening in mail client via mailto:.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { CheckIcon, CopyIcon, MailIcon, RefreshCwIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -23,6 +23,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { EventInput, Plan } from "@/lib/schema";
+import { COPIED_RESET_MS } from "@/lib/constants";
+import { formatRateLimitMessage, isRateLimited, parseApiError } from "@/lib/client/apiError";
 
 export function EmailDialog({
   open,
@@ -43,82 +45,69 @@ export function EmailDialog({
   const [body, setBody] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const fetchEmailDraft = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vendorType,
-          eventInput,
-          plan,
-        }),
-      });
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Controller of the in-flight request, so Retry and unmount can cancel it. */
+  const controllerRef = useRef<AbortController | null>(null);
 
-      if (res.status === 429) {
-        const retryAfter = res.headers.get("Retry-After");
-        const seconds = retryAfter ? Number(retryAfter) : null;
-        const msg = seconds
-          ? `Too many requests, wait ${seconds} seconds.`
-          : "Too many requests, please wait a moment.";
-        toast.error(msg, { id: "email-429" });
-        throw new Error(msg);
-      }
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to generate email (${res.status})`);
-      }
+  const requestDraft = useCallback(
+    async (signal: AbortSignal) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vendorType, eventInput, plan }),
+          signal,
+        });
 
-      const data = (await res.json()) as { subject: string; body: string };
-      setSubject(data.subject);
-      setBody(data.body);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate email draft");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let active = true;
-    if (open && vendorType) {
-      fetch("/api/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vendorType, eventInput, plan }),
-      })
-        .then((res) => {
-          if (res.status === 429) {
-            const retryAfter = res.headers.get("Retry-After");
-            const seconds = retryAfter ? Number(retryAfter) : null;
-            const msg = seconds
-              ? `Too many requests, wait ${seconds} seconds.`
-              : "Too many requests, please wait a moment.";
-            toast.error(msg, { id: "email-429" });
+        if (!res.ok) {
+          const apiErr = await parseApiError(res);
+          if (isRateLimited(apiErr)) {
+            const msg = formatRateLimitMessage(apiErr);
+            if (!signal.aborted) toast.error(msg, { id: "email-429" });
             throw new Error(msg);
           }
-          if (!res.ok) throw new Error(`Failed to generate email (${res.status})`);
-          return res.json();
-        })
-        .then((data) => {
-          if (active) {
-            setSubject(data.subject);
-            setBody(data.body);
-          }
-        })
-        .catch((err) => {
-          if (active) setError(err.message || "Failed to generate email");
-        })
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-    }
-    return () => {
-      active = false;
-    };
-  }, [open, vendorType, eventInput, plan]);
+          throw new Error(apiErr.message);
+        }
+
+        const data = (await res.json()) as { subject: string; body: string };
+        if (signal.aborted) return;
+        setSubject(data.subject);
+        setBody(data.body);
+      } catch (err) {
+        if (signal.aborted) return;
+        setError(err instanceof Error ? err.message : "Failed to generate email draft");
+      } finally {
+        if (!signal.aborted) setLoading(false);
+      }
+    },
+    [vendorType, eventInput, plan],
+  );
+
+  const startRequest = useCallback(() => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    void requestDraft(controller.signal);
+    return controller;
+  }, [requestDraft]);
+
+  useEffect(() => {
+    if (!open || !vendorType) return;
+    // Starting a request synchronizes with an external system (the network); the
+    // loading flag must be set before the first paint of the open dialog.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const controller = startRequest();
+    return () => controller.abort();
+  }, [open, vendorType, startRequest]);
+
+  useEffect(
+    () => () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    },
+    [],
+  );
 
   const handleCopy = async () => {
     try {
@@ -126,7 +115,8 @@ export function EmailDialog({
       await navigator.clipboard.writeText(fullText);
       setCopied(true);
       toast.success("Email copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setCopied(false), COPIED_RESET_MS);
     } catch {
       toast.error("Failed to copy email");
     }
@@ -155,7 +145,7 @@ export function EmailDialog({
         ) : error ? (
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <p className="text-sm text-destructive">{error}</p>
-            <Button variant="outline" size="sm" onClick={fetchEmailDraft} className="gap-2">
+            <Button variant="outline" size="sm" onClick={startRequest} className="gap-2">
               <RefreshCwIcon className="size-4" />
               Retry
             </Button>

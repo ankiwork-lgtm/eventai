@@ -78,6 +78,22 @@ function usePrefersReducedMotion(): boolean {
   );
 }
 
+/** Shared Recharts tooltip formatter: "<money> · <percent>%" plus a caller-chosen label. */
+function makeTooltipFormatter(
+  currency: string,
+  label: (payload: { percent?: number; name?: string }) => string,
+) {
+  return (value: unknown, _name: unknown, item: { payload?: unknown } | undefined) => {
+    const payload = (item?.payload ?? {}) as { percent?: number; name?: string };
+    const cost = typeof value === "number" ? value : Number(value) || 0;
+    const p = payload.percent;
+    return [
+      `${formatMoney(cost, currency)}${typeof p === "number" ? ` · ${p}%` : ""}`,
+      label(payload),
+    ] as [string, string];
+  };
+}
+
 export function BudgetChart({
   items,
   currency,
@@ -185,25 +201,10 @@ export function BudgetChart({
                 stroke="var(--background)"
               >
                 {data.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
+                  <Cell key={`${entry.name}-${i}`} fill={entry.fill} />
                 ))}
               </Pie>
-              <Tooltip
-                formatter={(value, _name, item) => {
-                  const payload = (item?.payload ?? {}) as {
-                    percent?: number;
-                    name?: string;
-                  };
-                  const cost = typeof value === "number" ? value : Number(value) || 0;
-                  const p = payload.percent;
-                  return [
-                    `${formatMoney(cost, currency)}${
-                      typeof p === "number" ? ` · ${p}%` : ""
-                    }`,
-                    payload.name ?? "",
-                  ];
-                }}
-              />
+              <Tooltip formatter={makeTooltipFormatter(currency, (p) => p.name ?? "")} />
             </PieChart>
           ) : (
             <BarChart
@@ -218,22 +219,10 @@ export function BudgetChart({
                 width={90}
                 tick={{ fontSize: 11 }}
               />
-              <Tooltip
-                formatter={(value, _name, item) => {
-                  const payload = (item?.payload ?? {}) as { percent?: number };
-                  const cost = typeof value === "number" ? value : Number(value) || 0;
-                  const p = payload.percent;
-                  return [
-                    `${formatMoney(cost, currency)}${
-                      typeof p === "number" ? ` · ${p}%` : ""
-                    }`,
-                    "Cost",
-                  ];
-                }}
-              />
+              <Tooltip formatter={makeTooltipFormatter(currency, () => "Cost")} />
               <Bar dataKey="value" isAnimationActive={animate} radius={4}>
                 {data.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
+                  <Cell key={`${entry.name}-${i}`} fill={entry.fill} />
                 ))}
               </Bar>
             </BarChart>

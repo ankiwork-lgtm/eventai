@@ -7,7 +7,7 @@
 
 import { addDays } from "date-fns";
 import { formatIsoDate } from "@/lib/dates";
-import type { EventInput } from "@/lib/schema";
+import type { EventInput, EventInputRequest } from "@/lib/schema";
 
 export type DemoScenarioId =
   | "wedding-mumbai"
@@ -18,7 +18,7 @@ export type DemoScenario = {
   id: DemoScenarioId;
   label: string;
   description: string;
-  buildInput: (today: Date) => EventInput;
+  buildInput: (today: Date) => EventInputRequest;
 };
 
 export const DEMO_SCENARIOS: readonly DemoScenario[] = [

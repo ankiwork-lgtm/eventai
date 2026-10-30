@@ -33,6 +33,39 @@ describe("GET /api/moodboard", () => {
     expect(data).toEqual([]);
   });
 
+  // Contract change (task 2.5): 429 now returns the shared error envelope
+  // (previously a bare []) plus Retry-After.
+  it("returns the 429 envelope with Retry-After when rate limited", async () => {
+    delete process.env.UNSPLASH_ACCESS_KEY;
+    const { GET } = await import("@/app/api/moodboard/route");
+    const mk = () =>
+      new Request("http://localhost/api/moodboard?q=x", {
+        headers: { "x-real-ip": "203.0.113.77" },
+      });
+    let res: Response = await GET(mk());
+    for (let i = 0; i < 40 && res.status !== 429; i++) res = await GET(mk());
+
+    expect(res.status).toBe(429);
+    expect(Number(res.headers.get("Retry-After"))).toBeGreaterThan(0);
+    const body = await res.json();
+    expect(body.error.code).toBe("RATE_LIMITED");
+    expect(typeof body.error.message).toBe("string");
+    expect(body.error.details).toEqual({});
+  });
+
+  it("returns empty array with 200 when upstream fails", async () => {
+    process.env.UNSPLASH_ACCESS_KEY = "mock-key";
+    global.fetch = vi.fn().mockResolvedValue({ ok: false } as unknown as Response);
+    const { GET } = await import("@/app/api/moodboard/route");
+    const res = await GET(
+      new Request("http://localhost/api/moodboard?q=a", {
+        headers: { "x-real-ip": "203.0.113.78" },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([]);
+  });
+
   it("fetches and maps images from Unsplash when key is configured", async () => {
     process.env.UNSPLASH_ACCESS_KEY = "mock-key";
 

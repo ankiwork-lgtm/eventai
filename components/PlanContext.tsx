@@ -29,7 +29,25 @@ export type PlanStatus =
 /** The plan shape components consume: full Plan or a streamed partial. */
 export type PlanView = Plan | DeepPartial<Plan> | null | undefined;
 
+/**
+ * Narrow a PlanView to a full Plan, or null while sections are still missing
+ * (streaming partial, no plan). Consumers that need every section (export,
+ * calendar) use this instead of casting.
+ */
+export function asCompletePlan(view: PlanView): Plan | null {
+  if (!view) return null;
+  const hasAllSections =
+    typeof view.summary === "string" &&
+    Array.isArray(view.budget) &&
+    Array.isArray(view.timeline) &&
+    Array.isArray(view.vendors) &&
+    Array.isArray(view.ideas);
+  return hasAllSections ? (view as Plan) : null;
+}
+
 export type PlanContextValue = {
+  /** Stored plan id (used for stable calendar UIDs). */
+  planId?: string;
   /** The event input that produced this plan. */
   input: EventInput | null;
   /** Current plan view: streaming partial or persisted full plan. */

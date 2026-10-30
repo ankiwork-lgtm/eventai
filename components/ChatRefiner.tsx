@@ -13,7 +13,7 @@
  * inside effects.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +24,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { applyRefinement, applyUndo } from "@/lib/refine";
+import { REFINE_HISTORY_LIMIT } from "@/lib/constants";
+import { RefineResultSchema } from "@/lib/schema";
 import type { RefineResult } from "@/lib/schema";
+import {
+  formatRateLimitMessage,
+  isRateLimited,
+  parseApiError,
+} from "@/lib/client/apiError";
 import type { StoredPlan, ChatMessage } from "@/lib/types";
 
 const QUICK_SUGGESTIONS = [
@@ -36,7 +43,7 @@ const QUICK_SUGGESTIONS = [
 
 const MAX_MSG_LENGTH = 500;
 /** Max chat history entries sent to /api/refine (server trims to the same). */
-export const HISTORY_SEND_LIMIT = 6;
+export const HISTORY_SEND_LIMIT = REFINE_HISTORY_LIMIT;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -65,6 +72,7 @@ export function ChatRefiner({
   // they are persisted to record.chat via onRecordChange.
   const [overlay, setOverlay] = useState<TransientBubble[]>([]);
   const listEndRef = useRef<HTMLDivElement>(null);
+  const bubbleIdPrefix = useId();
 
   // The last assistant bubble in record.chat is "undoable" while lastSnapshot exists.
   const lastPersistedIdx = record.chat.length - 1;
@@ -102,25 +110,29 @@ export function ChatRefiner({
           }),
         });
 
-        if (res.status === 429) {
-          toast.error("Too many requests, please wait a moment.", { id: "refine-429" });
+        if (!res.ok) {
+          const apiErr = await parseApiError(res);
+          const text = isRateLimited(apiErr)
+            ? formatRateLimitMessage(apiErr)
+            : apiErr.message;
+          if (isRateLimited(apiErr)) toast.error(text, { id: "refine-429" });
           setOverlay([
             { id: optimisticId, role: "user", content: message },
             {
               id: crypto.randomUUID(),
               role: "assistant",
-              content: "Rate limited — please wait and try again.",
+              content: text,
               isError: true,
             },
           ]);
           return;
         }
 
-        if (!res.ok) {
-          throw new Error(`Server error ${res.status}`);
+        const parsedResult = RefineResultSchema.safeParse(await res.json());
+        if (!parsedResult.success) {
+          throw new Error("Invalid refine response");
         }
-
-        const result = (await res.json()) as RefineResult;
+        const result: RefineResult = parsedResult.data;
 
         const userMsg: ChatMessage = {
           role: "user",
@@ -208,6 +220,7 @@ export function ChatRefiner({
               className={`mb-3 flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
             >
               <div
+                id={`${bubbleIdPrefix}-${i}`}
                 className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground"
@@ -220,7 +233,7 @@ export function ChatRefiner({
                  <button
                    type="button"
                    onClick={handleUndo}
-                   aria-label={`Undo: revert "${msg.content.slice(0, 40)}${msg.content.length > 40 ? "…" : ""}"`}
+                   aria-describedby={`${bubbleIdPrefix}-${i}`}
                    className="mt-1 min-h-[40px] px-1 text-xs text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded"
                  >
                    Undo

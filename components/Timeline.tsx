@@ -20,8 +20,9 @@ import { isCompleteTimelineItem } from "@/lib/guards";
 import { groupByPhase } from "@/lib/timeline";
 import { formatDisplayDate, resolveWithClamp, sortTimeline } from "@/lib/dates";
 import { buildIcs, downloadIcs } from "@/lib/export";
+import { getEventDisplayName, toSafeFilename } from "@/lib/eventName";
 import { taskKey } from "@/lib/progress";
-import { useOptionalPlan } from "@/components/PlanContext";
+import { asCompletePlan, useOptionalPlan } from "@/components/PlanContext";
 import type { Plan } from "@/lib/schema";
 import type { ProgressState } from "@/lib/types";
 
@@ -63,14 +64,15 @@ export function Timeline({
   const planCtx = useOptionalPlan();
 
   const handleExportIcs = () => {
-    if (!planCtx?.input || !planCtx?.plan) return;
+    const fullPlan = asCompletePlan(planCtx?.plan);
+    if (!planCtx?.input || !fullPlan) return;
     try {
       const icsData = buildIcs({
-        planId: "plan",
+        planId: planCtx.planId ?? "plan",
         input: planCtx.input,
-        plan: planCtx.plan as Plan,
+        plan: fullPlan,
       });
-      const name = planCtx.input.name?.trim() || planCtx.input.eventType;
+      const name = toSafeFilename(getEventDisplayName(planCtx.input));
       downloadIcs(`${name}-schedule.ics`, icsData);
       toast.success("Calendar downloaded");
     } catch (e) {
